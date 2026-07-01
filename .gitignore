@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+.mypy_cache/
+.ruff_cache/
+
+# macOS
+.DS_Store
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*~
+
+# Skill 运行时产物（用户本机敏感，绝不入库）
+~/.hvv-defender/
+audit.jsonl
+sessions/
+collects/
+
+# 临时输出
+/tmp/hvv-*
+*.pcap
+*.pcapng
+*.evtx
+*.evtx.csv
+*.evtx.xml
+
+# 用户样本（脱敏后仍不建议入库）
+alerts-*.json
+alerts-*.csv
+*.tar.gz
