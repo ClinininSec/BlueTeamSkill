@@ -4,7 +4,23 @@
 
 ---
 
-## v0.4-M0（当前）— remote 模式：授权 SSH 分析
+## v0.4-M1（当前）— 规范化统一终报
+
+**跨模式统一结论报告 + 机器可读伴生文件**
+
+- 新模板：`assets/final-report.md` —— 5 模式收尾统一终报，按**攻击路径**组织（防御者视角，借用代码审计模板的分层优先级 / 路径地图 / 评分卡 / 时间线模拟 / MRS 骨架，守红线不出 PoC）；10 节 spine + 模式激活表（ir 形态最厚 / monitor·remote 形态最薄）
+- 新 schema：`assets/findings-schema.md` —— 终报的机器可读伴生文件 `findings.json`；`findings[]` 严格遵循 8 字段契约（`rule-id-namespaces.md §三`），`attack_paths[]` 消费 `ir-investigator` 的 `kill_chain`，`ioc_ref` 指向 `ioc-extract.md` 的 IOC 文件
+- 现有 4 模板（`incident-report` / `daily-report` / `ioc-extract` / `handover`）降为终报的**模式专属附件**
+- 5 模式 + 1 playbook 接入收尾步骤：`modes/{monitor,audit,ir,remote}.md` + `playbooks/traffic-audit.md` 各新增"收尾：渲染 final-report.md（X 形态）+ findings.json"节
+- 3 个子 agent（`alert-triage` / `log-analyzer` / `ir-investigator`）标注其 `findings[]` / `kill_chain` 为 findings.json 直接来源
+- `SKILL.md` 输出契约段加"收尾统一报告"；关键参考文件表 +2 行；Quick Reference +1 行；版本升 v0.4-M1
+- `rule-id-namespaces.md` 新增 §五 findings.json schema 指针（与 §四 IOC schema 对称）
+
+**设计决策**（用户对齐）：① 防御者视角借用攻击路径骨架；② 新增统一终报保留现有 4 个为附件；③ 全部 5 模式收尾都出统一报告（spine + 模式分支）；④ 同时输出 findings.json 对齐 8 字段契约。
+
+---
+
+## v0.4-M0 — remote 模式：授权 SSH 分析
 
 **新增第 5 模式：remote（SSH 远程分析）**
 

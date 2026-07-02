@@ -140,6 +140,8 @@
 - 证据不足以闭环 → 标 inconclusive，列出"还需采集什么证据"
 ```
 
+> **v0.4-M1**：本 agent 的 `verdict` / `kill_chain` / `scope_assessment` / `dwell_time_hours` 是收尾 `findings.json`（schema 见 `assets/findings-schema.md`，`mode=ir`）的 `verdict` / `attack_paths[]` / 顶层字段的直接来源；`findings[]`（8 字段）由主会话合并各检测脚本 + 本 agent 输出生成。主会话收尾时据此渲染 `final-report.md`（ir 形态，最厚）。
+
 ## 输入打包模板
 
 ```json

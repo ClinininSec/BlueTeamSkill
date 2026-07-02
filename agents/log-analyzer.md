@@ -92,6 +92,8 @@
 - 用户要求"删 webshell"→ 输出文件路径让用户自己操作，不擅自动文件
 ```
 
+> **v0.4-M1**：本 agent 的 `findings[]`（8 字段，`AUD-NNN`）与 `summary.correlation_strong` 是收尾 `findings.json`（schema 见 `assets/findings-schema.md`，`mode=audit`）与 `final-report.md §3/§4`（跨源异常链）的直接来源；主会话收尾时据此生成统一终报（audit 形态）。
+
 ## 输入打包模板
 
 ```json

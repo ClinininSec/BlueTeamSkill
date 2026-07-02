@@ -290,10 +290,28 @@ python scripts/timeline_build.py \
 
 ---
 
+## 十二、收尾：统一终报 + findings.json
+
+ir 攻击链还原 + 三阶段处置完成后，**必须**输出跨模式统一终报与机器可读伴生文件（见 `SKILL.md §输出契约`）。ir 形态是终报最厚变体：
+
+- **`final-report.md`（ir 形态，最厚）**：按 `assets/final-report.md` 渲染，所有节必填——
+  - §2 判定与影响：verdict = `confirmed_intrusion` / `high_suspicion` / `inconclusive`，全字段（dwell time / compromised_count / data_exfil / persistence_status）
+  - §3 攻击路径地图：渲染为**完整 MITRE kill chain**（最多 13 节点），直接取 `agents/ir-investigator` 的 `kill_chain`
+  - §4 分层发现详情：P0/P1 全文 8 字段卡 + 攻击路径评分
+  - §5 证据与时间线：T+0:00 时间线模拟 + 检测空窗分析
+  - §7 处置建议与优先级：完整 止血/根除/恢复 三阶段表 + MRS + 验证清单
+  - §10 附件：`incident-report.md`（ir 完整 12 节详尽报告，作终报的详尽附件）/ `ioc-extract.md` / `timeline-merged.ndjson` / 采集包
+- **`findings.json`**：按 `assets/findings-schema.md` 生成，`mode=ir`，`findings[]` 含 8 字段 + blast_radius + confidence，`attack_paths[]` 必填（消费 ir-investigator 的 kill_chain），`dwell_time_hours` 必填
+
+> ir 形态终报是"事件结论封面"；`incident-report.md`（§九大纲）是详尽 12 节正文，作为终报附件。两者字段对应：终报 §3 = incident-report §4，终报 §4 = incident-report §2/§8，终报 §7 = incident-report §6。
+
+---
+
 ## 相关引用
 
 - 主机核查清单：`../ioc-checklist/linux-host-check.md`
 - 攻击特征库：`../attack-patterns/`
 - 处置剧本：`../playbooks/`
-- 报告模板：`../../assets/incident-report.md`
+- 统一终报：`../../assets/final-report.md`（ir 形态）+ `../../assets/findings-schema.md`
+- 详尽附件：`../../assets/incident-report.md`（ir 12 节正文）
 - 分级 SLA：`../grading.md`

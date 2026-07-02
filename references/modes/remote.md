@@ -336,13 +336,21 @@ audit 与 remote 的衔接：audit 需要新的日志片段时可以生成 `fetc
 
 ---
 
-## 相关引用
+## 十一、收尾：统一终报 + findings.json
 
-- 白名单知识库：`../remote-command-whitelist.md`
-- 审计字段：`../log-fields/audit-session.md`
-- 合规红线：`../compliance.md` §红线 4 / 7
-- 分级：`../grading.md`
-- 术语：`../glossary.md`
-- ir 模式：`./ir.md`
-- audit 模式：`./audit.md`
+remote 采集 / 处置会话结束后，**必须**输出跨模式统一终报与机器可读伴生文件（见 `SKILL.md §输出契约`）：
+
+- **`final-report.md`（remote 形态，轻量变体）**：按 `assets/final-report.md` 渲染——
+  - §2 判定与影响：verdict 多为 `inconclusive`（采集完成待 ir 分析）或沿用 ir 判定；填采集命令数 + Tier 3 处置数
+  - §3 攻击路径地图：渲染为**采集→发现链**形态（Tier 1 只读采集节点 → 发现 → 若有 Tier 3 处置则接处置节点，每节点带 SESSION-AUDIT-* 审计 ID）
+  - §4 分层发现详情：P0/P1 全文 8 字段卡，rule_id 含 `R-REM-*` / `R-REM-DISP-*`
+  - §7 处置建议与优先级：取 **Tier 3 处置变体**（每条带授权状态 + 审计 ID + 录制文件）；未授权的处置建议只生成命令清单（H-I-L 堡垒机降级）
+  - §10 附件：`sessions/*.log`（会话录制）/ `audit.jsonl`（命令审计）/ 若转 ir 则挂 `incident-report.md`
+- **`findings.json`**：按 `assets/findings-schema.md` 生成，`mode=remote`，`findings[]` 的 rule_id 含 `R-REM-*`，`attack_paths[]` nodes 带 Tier 命令节点
+
+> remote 与 ir 协作时：remote 拉数据 → ir 分析 → 定性入侵 → 回 remote 触发 Tier 3（二次授权）。终报以 ir 形态为主，remote 形态作为采集/处置证据挂附件。
+
+---
+
+## 相关引用
 

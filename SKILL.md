@@ -5,7 +5,7 @@ description: |
 
   当用户说 "帮我看这批告警 / 分诊 SIEM 告警 / 值守日报 / 审计 nginx / auth.log / 排查 SSH 暴破 / webshell 扫描 / 分析 pcap / wireshark 抓包 / tcpdump / 识别 C2 / JA3 指纹 / DNS 隧道 / 主机怀疑被入侵 / 应急响应 / 还原攻击链 / 出事件报告 / evtx 分析 / Windows 主机排查 / NGSOC / 深信服 SIP / 长亭雷池 / 明御 WAF / 远程 SSH 采集 / 远程执行命令 / 提取 IOC / 这个 IP 是不是 C2 / 这个 hash 有没有见过 / log4j 检测规则怎么写" 中的任一类时，优先激活本 skill。
 
-  设计原则：离线优先 + 授权远程；脱敏内建；每条告警必附证据；红线三条：不出 PoC / 不做破坏动作 / 不做横移。首次使用先跑 `bash scripts/hvv_init.sh` 装依赖（tshark + python3 + sshpass/expect）。当前版本 v0.4-M0，历史版本见 `references/CHANGELOG.md`。
+  设计原则：离线优先 + 授权远程；脱敏内建；每条告警必附证据；红线三条：不出 PoC / 不做破坏动作 / 不做横移。首次使用先跑 `bash scripts/hvv_init.sh` 装依赖（tshark + python3 + sshpass/expect）。当前版本 v0.4-M1，历史版本见 `references/CHANGELOG.md`。
 allowed-tools:
   - Read
   - Write
@@ -57,7 +57,7 @@ model: sonnet
 | 分级标准 | `references/grading.md` | P0-P3 定义 + SLA，跨客户语义一致 |
 | 合规边界 | `references/compliance.md` | 脱敏规则、数据外发禁止项、操作红线、远程连接四要素 |
 | 规则命名分层 | `references/rule-id-namespaces.md` | 所有 `R-*` / `PLB-*` / `SIG-*` / `CHECK-*` 前缀的命名空间总表 |
-| 版本历史 | `references/CHANGELOG.md` | v0.1 → v0.4-M0 的能力演化 |
+| 版本历史 | `references/CHANGELOG.md` | v0.1 → v0.4-M1 的能力演化 |
 | 术语表 | `references/glossary.md` | 蓝队 / 红队 / 监管侧术语映射 |
 | 跨规则关联 agent | `agents/log-analyzer.md` | audit 模式跨源关联分析 |
 | 告警分诊 agent | `agents/alert-triage.md` | monitor 模式 P0-P3 分级 + 误报判定 |
@@ -67,6 +67,8 @@ model: sonnet
 | 值守交接模板 | `assets/handover.md` | 白班 / 夜班交接、周班交接 |
 | IOC 提取模板 | `assets/ioc-extract.md` | 标准 IOC schema 输出 |
 | 内置 IOC 库 | `data/ioc-builtin.json` | 51 条基线 IOC，`ioc_match.py --builtin` 自动加载 |
+| 统一终报模板 | `assets/final-report.md` | 跨 5 模式收尾结论报告（攻击路径骨架，10 节 spine + 模式激活表） |
+| findings.json schema | `assets/findings-schema.md` | 终报机器可读伴生文件 schema（8 字段契约 + attack_paths + ioc_ref） |
 
 ## 首次使用：装依赖
 
@@ -114,6 +116,8 @@ monitor 命中 P0/P1  →  转 audit 或 traffic 深挖证据  →  确认入侵
 
 IOC 输出走 **标准 schema**：`type` / `value`（脱敏）/ `confidence` / `first_seen` / `source` / `tag`。
 
+**收尾统一报告**：任意模式得出结论后，输出跨模式一致的 markdown 终报 `assets/final-report.md`（按攻击路径组织，10 节 spine + 模式激活表，5 模式各有变体），并同生机器可读伴生文件 `findings.json`（schema 见 `assets/findings-schema.md`；`findings[]` 严格遵循上述 8 字段契约，`attack_paths[]` 消费 `agents/ir-investigator` 的 `kill_chain`）。现有 4 个模板（`incident-report` / `daily-report` / `ioc-extract` / `handover`）降为终报的模式专属附件。
+
 字段完整定义、样例、Rule ID 命名分层（`PLB-*` / `SIG-*` / `R-*` / `CHECK-*` / `IOC-*` / `VENDOR-*` / `SESSION-AUDIT-*` 各前缀落地位置与 emit 规则）均在 `references/rule-id-namespaces.md`；`monitor.md §七` 有完整样例。
 
 ## 合规与脱敏（摘要）
@@ -157,4 +161,5 @@ IOC 输出走 **标准 schema**：`type` / `value`（脱敏）/ `confidence` / `
 | "这个 IP / 域名 / hash / UA 是不是恶意" | 任意模式 + `scripts/ioc_match.py --builtin` |
 | "给我 log4j / fastjson 的 SIEM 规则" | 检索 `references/playbooks/*.md` |
 | "提取 IOC" / "生成 IOC 列表" | 任意模式尾端 + `assets/ioc-extract.md` |
+| "出终报" / "生成报告" / "收尾出报告" | 任意模式收尾 + `assets/final-report.md` + `findings.json` |
 | "值守日报" / "交接班" | monitor + `assets/daily-report.md` / `assets/handover.md` |

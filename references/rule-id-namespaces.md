@@ -54,3 +54,17 @@
 | `first_seen` | 日志中首次出现的时间戳 | |
 | `source` | 提取来源：日志文件 + 行号 / 规则 ID | |
 | `tag` | 可选：`tool:fscan` / `c2:cobaltstrike` / `fp-suspect` | |
+
+## 五、findings.json 伴生 schema（用于 `assets/findings-schema.md`）
+
+> v0.4-M1 新增。任意模式收尾与 `final-report.md` 同生的机器可读文件 `findings.json` 遵此 schema。
+
+| 顶层字段 | 取值 | 说明 |
+|---|---|---|
+| `findings[]` | 每条 = §三 的 8 字段 + `blast_radius` + `confidence` + `mode` | 8 字段与本表 §三 严格一致 |
+| `attack_paths[]` | `tactic_chain` + `nodes[]`（消费 `agents/ir-investigator` 的 `kill_chain`） | ir/traffic/audit 必填，monitor/remote 可空 |
+| `ioc_ref` | 指向 `iocs-<case_id>.json` | IOC 文件遵 §四 schema |
+| `summary` | `{p0,p1,p2,p3,total}` | = `findings[]` 按 severity 聚合 |
+| `verdict` | `confirmed_intrusion` / `high_suspicion` / `inconclusive` / `no_intrusion` | 与 `final-report.md §2` 一致 |
+
+完整字段表、校验清单、SIEM 导入说明、ir/monitor 两形态完整示例见 `assets/findings-schema.md`。

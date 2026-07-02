@@ -366,9 +366,27 @@ triaged ── 已打 severity / category / fp_prob
 
 ---
 
+## 十、收尾：统一终报 + findings.json
+
+monitor 批次处理完毕后，**必须**输出跨模式统一终报与机器可读伴生文件（见 `SKILL.md §输出契约`）：
+
+- **`final-report.md`（monitor 形态，轻量变体）**：按 `assets/final-report.md` 渲染——
+  - §1 执行摘要：本批一句话总结 + P0-P3 分层计数
+  - §2 判定与影响：verdict 多为 `no_intrusion` / `high_suspicion`，填误报率 + 待跟进 P1 数
+  - §3 攻击路径地图：渲染为**告警关联簇（CLU-*）**形态（同源 IP/UA/账号跨规则命中簇）
+  - §4 分层发现详情：P0/P1 全文 8 字段卡，P2/P3 汇总计数
+  - §7 处置建议与优先级：取**待跟进列表**变体
+  - §10 附件：`daily-report.md`（运营日报，作详尽附件）/ `ioc-extract.md` / `handover.md`
+- **`findings.json`**：按 `assets/findings-schema.md` 生成，`mode=monitor`，`findings[]` 为本批 P0-P3 条目（8 字段），`attack_paths=[]`（monitor 用关联簇替代，簇信息进 `findings[].evidence` 的 CLU-* 标注）
+
+> monitor 形态终报是"批次结论封面"；`daily-report.md` 仍是运营日报主体（时序趋势 / 交接备忘详尽内容），作为终报附件，两者不互替。
+
+---
+
 ## 相关引用
 
 - 输出 schema：`SKILL.md` 输出契约
+- 统一终报：`../../assets/final-report.md`（monitor 形态）+ `../../assets/findings-schema.md`
 - 攻击 playbook：`../playbooks/`
 - 字段对照：`../log-fields/waf-fw-generic.md`
 - 分级公式：`../grading.md`

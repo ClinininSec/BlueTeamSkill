@@ -74,6 +74,8 @@
 - 用户若要求直接连主机封 IP → 拒绝并改输出"建议封禁"动作清单
 ```
 
+> **v0.4-M1**：本 agent 的 `findings[]`（8 字段）是收尾 `findings.json`（schema 见 `assets/findings-schema.md`，`mode=monitor`）与 `final-report.md §4` 的直接来源；主会话收尾时据此生成统一终报（monitor 形态）。
+
 ## 调用示例（主会话端伪代码）
 
 ```python

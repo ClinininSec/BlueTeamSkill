@@ -900,3 +900,24 @@ v0.3-M1 部分规则依赖 tshark >= 3.6 的字段：
 | R-TRAF-098 | flow | P1 | 免杀 loader 脉冲 beacon |
 
 **END OF §十一**
+
+---
+
+## 十二、收尾：统一终报 + findings.json
+
+traffic 六步审计 + TLS/DNS 深化完成后，**必须**输出跨模式统一终报与机器可读伴生文件（见 `SKILL.md §输出契约`）：
+
+- **`final-report.md`（traffic 形态）**：按 `assets/final-report.md` 渲染——
+  - §2 判定与影响：verdict 多为 `high_suspicion`（疑似 C2 / 隧道）或 `confirmed_intrusion`（与 ir 联动定性后）；填异常源数 + 是否升级 ir
+  - §3 攻击路径地图：渲染为 **flow + C2 通道图**形态（src→dst HTTP/TLS/DNS 节点 + JA3/JA3S 指纹 + DNS 隧道通道），`tactic_chain` 多为 `[TA0011_C2]`
+  - §4 分层发现详情：P0/P1 全文 8 字段卡，rule_id 含 `R-TRAF-*`
+  - §5 证据与时间线：✅ 必填（pcap 时间窗 + C2 beacon 间隔）
+  - §6 IOC 清单：ip / domain / ja3 / ua 等流量侧 IOC
+  - §7 处置建议与优先级：取**封堵建议**变体（封 IP / 域名 / 加 WAF 规则，未执行）
+  - §8 检测改进：IDS/IPS 规则缺口 + JA3 hash 库校准建议
+  - §10 附件：`ioc-extract.md`；若升级 ir 则挂 `incident-report.md`
+- **`findings.json`**：按 `assets/findings-schema.md` 生成，`mode=traffic`，`findings[]` rule_id 含 `R-TRAF-*`，`attack_paths[]` nodes 为 flow/conn 节点（src→dst + 检测规则）
+
+> traffic 发现 webshell 落地 / C2 确认 / 横向移动等入侵信号 → 升级 ir，终报改走 ir 形态，traffic 形态作为网络侧证据挂附件。
+
+> **与其他文档的交叉索引**：见原 §附录 D；本 §十二 为 v0.4-M1 新增。
