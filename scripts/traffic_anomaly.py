@@ -60,6 +60,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Iterator
 
+# Shared helpers (pure stdlib). sys.path bootstrap keeps the script runnable
+# standalone as `python3 scripts/traffic_anomaly.py` without PYTHONPATH/pip.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import hvv_common as _hc  # noqa: E402
+
 # --------------------------------------------------------------------------- #
 # Rule metadata                                                               #
 # --------------------------------------------------------------------------- #
@@ -420,16 +425,7 @@ BRUTE_MARKER_RX = re.compile(
 
 
 def parse_ts(s: str | None) -> datetime | None:
-    if not s:
-        return None
-    s = s.replace("Z", "+00:00")
-    try:
-        return datetime.fromisoformat(s)
-    except Exception:
-        try:
-            return datetime.fromisoformat(s.split("+")[0])
-        except Exception:
-            return None
+    return _hc.parse_ts(s)
 
 
 def qname_entropy_ratio(q: str) -> float:
@@ -1051,13 +1047,13 @@ def _iocs(rec: dict, rule_id: str) -> list[dict]:
 
 
 def emit(findings: list[dict], rule_id: str, rec: dict, extra: dict) -> None:
-    n = len(findings) + 1
     raw = rec.get("raw") or {}
-    findings.append({
-        "id": f"TRAF-{n:03d}",
-        "severity": SEVERITY.get(rule_id, "P3"),
-        "category": CATEGORY.get(rule_id, "recon"),
-        "evidence": {
+    _hc.emit_finding(
+        findings,
+        id_prefix="TRAF",
+        severity=SEVERITY.get(rule_id, "P3"),
+        category=CATEGORY.get(rule_id, "recon"),
+        evidence={
             "ts": rec.get("ts"),
             "src_ip": rec.get("src_ip"),
             "dst_ip": rec.get("dst_ip"),
@@ -1073,11 +1069,11 @@ def emit(findings: list[dict], rule_id: str, rec: dict, extra: dict) -> None:
             "hint": {k: _mask(str(v), 200) for k, v in extra.items()
                      if k not in {"sig_id", "tool", "narrative"} and v is not None},
         },
-        "rule_id": rule_id,
-        "false_positive_prob": FP_PROB.get(rule_id, 0.3),
-        "recommended_action": ACTION.get(rule_id, "纳入待跟进"),
-        "iocs": _iocs(rec, rule_id),
-    })
+        rule_id=rule_id,
+        fp_prob=FP_PROB.get(rule_id, 0.3),
+        action=ACTION.get(rule_id, "纳入待跟进"),
+        iocs=_iocs(rec, rule_id),
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -1423,21 +1419,7 @@ def detect(records: Iterator[dict], sigs: list[dict]) -> list[dict]:
 
 
 def iter_ndjson(path: str) -> Iterator[dict]:
-    fh = sys.stdin if path == "-" else open(path, "r", encoding="utf-8")
-    try:
-        for line in fh:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                rec = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            if rec.get("view"):
-                yield rec
-    finally:
-        if path != "-":
-            fh.close()
+    yield from _hc.iter_ndjson(path, predicate=lambda r: r.get("view"))
 
 
 def parse_args(argv=None):

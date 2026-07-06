@@ -43,6 +43,11 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Iterator
 
+# Shared helpers (pure stdlib). sys.path bootstrap keeps the script runnable
+# standalone as `python3 scripts/auth_log_audit.py` without PYTHONPATH/pip.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import hvv_common as _hc  # noqa: E402
+
 
 BRUTE_WINDOW = timedelta(minutes=5)
 BRUTE_THRESHOLD = 20
@@ -54,16 +59,7 @@ SUDO_BURST_THRESHOLD = 10
 
 
 def parse_ts(s: str | None) -> datetime | None:
-    if not s:
-        return None
-    s = s.replace("Z", "+00:00")
-    try:
-        return datetime.fromisoformat(s)
-    except Exception:
-        try:
-            return datetime.fromisoformat(s.split("+")[0])
-        except Exception:
-            return None
+    return _hc.parse_ts(s)
 
 
 def severity(rule_id: str) -> str:
@@ -119,12 +115,12 @@ def action(rule_id: str) -> str:
 
 
 def emit(findings: list[dict], rule_id: str, rec: dict, extra: dict) -> None:
-    n = len(findings) + 1
-    findings.append({
-        "id": f"AUTH-{n:03d}",
-        "severity": severity(rule_id),
-        "category": category(rule_id),
-        "evidence": {
+    _hc.emit_finding(
+        findings,
+        id_prefix="AUTH",
+        severity=severity(rule_id),
+        category=category(rule_id),
+        evidence={
             "ts": rec.get("ts"),
             "src_ip": rec.get("src_ip"),
             "user": rec.get("user"),
@@ -133,11 +129,11 @@ def emit(findings: list[dict], rule_id: str, rec: dict, extra: dict) -> None:
             "line_no": rec.get("line_no"),
             **extra,
         },
-        "rule_id": rule_id,
-        "false_positive_prob": fp_prob(rule_id),
-        "recommended_action": action(rule_id),
-        "iocs": _iocs(rec),
-    })
+        rule_id=rule_id,
+        fp_prob=fp_prob(rule_id),
+        action=action(rule_id),
+        iocs=_iocs(rec),
+    )
 
 
 def _iocs(rec: dict) -> list[dict]:
@@ -182,21 +178,7 @@ def load_pubkey_baseline(path: Path) -> set[str]:
 
 
 def iter_ndjson(path: str) -> Iterator[dict]:
-    fh = sys.stdin if path == "-" else open(path, "r", encoding="utf-8")
-    try:
-        for line in fh:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                rec = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            if rec.get("log_type") == "linux-auth":
-                yield rec
-    finally:
-        if path != "-":
-            fh.close()
+    yield from _hc.iter_ndjson(path, log_type="linux-auth")
 
 
 def detect(records: Iterator[dict], pubkey_baseline: set[str] | None) -> list[dict]:

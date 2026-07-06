@@ -40,6 +40,11 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Iterator
 
+# Shared helpers (pure stdlib). sys.path bootstrap keeps the script runnable
+# standalone as `python3 scripts/timeline_build.py` without PYTHONPATH/pip.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import hvv_common as _hc  # noqa: E402
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -58,29 +63,11 @@ def parse_bucket(s: str) -> timedelta:
 
 
 def parse_ts(ts: str | None) -> datetime | None:
-    if not ts:
-        return None
-    s = ts.replace("Z", "+00:00")
-    try:
-        return datetime.fromisoformat(s)
-    except ValueError:
-        # try without tz
-        try:
-            return datetime.fromisoformat(s.split("+")[0].split("-")[0])  # last-resort
-        except Exception:
-            return None
+    return _hc.parse_ts(ts)
 
 
 def iter_ndjson(path: Path) -> Iterator[dict]:
-    with open(path, "r", encoding="utf-8") as fh:
-        for line in fh:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                yield json.loads(line)
-            except json.JSONDecodeError:
-                continue
+    yield from _hc.iter_ndjson(path)
 
 
 def merge_sorted(streams: list[Iterator[dict]]) -> Iterator[dict]:
@@ -114,18 +101,7 @@ def merge_sorted(streams: list[Iterator[dict]]) -> Iterator[dict]:
 # Filters
 # ---------------------------------------------------------------------------
 def in_window(ts: str | None, since: str | None, until: str | None) -> bool:
-    if since is None and until is None:
-        return True
-    if not ts:
-        return True
-    try:
-        if since and ts < since:
-            return False
-        if until and ts > until:
-            return False
-    except Exception:
-        return True
-    return True
+    return _hc.in_window(ts, since, until)
 
 
 def passes_filters(rec: dict, args) -> bool:

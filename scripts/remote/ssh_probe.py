@@ -46,7 +46,6 @@ Desensitization:
 """
 
 import argparse
-import datetime
 import hashlib
 import json
 import os
@@ -60,6 +59,12 @@ import sys
 import tempfile
 import threading
 import time
+
+# Shared helpers (pure stdlib). remote/ scripts sit one level below scripts/,
+# so bootstrap points at parent to find hvv_common.py. Keeps the script
+# runnable standalone as `python3 scripts/remote/ssh_probe.py`.
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
+import hvv_common as _hc  # noqa: E402
 
 VERSION = "0.4-M0.1"
 
@@ -85,21 +90,11 @@ PLACEHOLDER_RE = re.compile(r"<([a-zA-Z_][a-zA-Z0-9_]*)>")
 STDOUT_TRUNCATE_BYTES = 100 * 1024  # 100 KB
 
 
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
-
-
-def now_iso() -> str:
-    """ISO-8601 with local tz offset. Python 3.8-safe."""
-    return datetime.datetime.now().astimezone().isoformat(timespec="seconds")
-
-
-def compact_ts() -> str:
-    return datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
-
-
-def expand_path(p: str) -> str:
-    return os.path.abspath(os.path.expanduser(p))
+# Shared helpers reused from hvv_common.
+eprint = _hc.eprint
+now_iso = _hc.now_iso
+compact_ts = _hc.compact_ts
+expand_path = _hc.expand_path
 
 
 def load_whitelist(path: str):
@@ -132,19 +127,7 @@ def index_whitelist(wl):
     return idx
 
 
-def parse_target(target: str):
-    """Parse user@host or user@host:port. Return (user, host, port_or_None)."""
-    if "@" not in target:
-        return None, None, None
-    user, rest = target.split("@", 1)
-    if ":" in rest:
-        host, port_s = rest.rsplit(":", 1)
-        try:
-            port = int(port_s)
-        except ValueError:
-            return None, None, None
-        return user, host, port
-    return user, rest, None
+parse_target = _hc.parse_target
 
 
 def validate_arg_value(name: str, value: str, patterns: dict):
@@ -431,11 +414,7 @@ def run_ssh_with_recording(ssh_argv, session_log_path: str, capture_only: bool):
     return rc, stdout_sink.total, stderr_sink.total, duration_ms, bytes(stdout_sink.buf), bytes(stderr_sink.buf)
 
 
-def append_audit(audit_path: str, record: dict):
-    p = pathlib.Path(expand_path(audit_path))
-    p.parent.mkdir(parents=True, exist_ok=True)
-    with open(p, "a", encoding="utf-8") as f:
-        f.write(json.dumps(record, ensure_ascii=False) + "\n")
+append_audit = _hc.append_audit
 
 
 def build_parser():

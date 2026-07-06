@@ -49,6 +49,11 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Iterator
 
+# Shared helpers (pure stdlib). sys.path bootstrap keeps the script runnable
+# standalone as `python3 scripts/nginx_anomaly.py` without PYTHONPATH/pip.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import hvv_common as _hc  # noqa: E402
+
 
 SENSITIVE_PATH_RX = re.compile(
     r"(?i)/(\.git/|\.env(?:\.|$|/|\?)|wp-admin|wp-login\.php|actuator(?:/|$)|swagger|"
@@ -96,16 +101,7 @@ def load_signatures(path: Path | None) -> list[dict]:
 
 
 def parse_ts(s: str | None) -> datetime | None:
-    if not s:
-        return None
-    s = s.replace("Z", "+00:00")
-    try:
-        return datetime.fromisoformat(s)
-    except Exception:
-        try:
-            return datetime.fromisoformat(s.split("+")[0])
-        except Exception:
-            return None
+    return _hc.parse_ts(s)
 
 
 def severity_p(rule_id: str) -> str:
@@ -162,12 +158,12 @@ def action_for(rule_id: str) -> str:
 
 
 def emit(findings: list[dict], rule_id: str, rec: dict, extra: dict) -> None:
-    n = len(findings) + 1
-    findings.append({
-        "id": f"NGX-{n:03d}",
-        "severity": severity_p(rule_id),
-        "category": category_for(rule_id),
-        "evidence": {
+    _hc.emit_finding(
+        findings,
+        id_prefix="NGX",
+        severity=severity_p(rule_id),
+        category=category_for(rule_id),
+        evidence={
             "ts": rec.get("ts"),
             "src_ip": rec.get("src_ip"),
             "uri": (rec.get("uri") or "")[:300],
@@ -178,11 +174,11 @@ def emit(findings: list[dict], rule_id: str, rec: dict, extra: dict) -> None:
             "line_no": rec.get("line_no"),
             **extra,
         },
-        "rule_id": rule_id,
-        "false_positive_prob": fp_prob(rule_id),
-        "recommended_action": action_for(rule_id),
-        "iocs": _iocs_from(rec, rule_id),
-    })
+        rule_id=rule_id,
+        fp_prob=fp_prob(rule_id),
+        action=action_for(rule_id),
+        iocs=_iocs_from(rec, rule_id),
+    )
 
 
 def _iocs_from(rec: dict, rule_id: str) -> list[dict]:
@@ -275,21 +271,7 @@ def detect(records: Iterator[dict], ua_sigs: list[dict]) -> list[dict]:
 
 
 def iter_ndjson_or_stdin(path: str) -> Iterator[dict]:
-    fh = sys.stdin if path == "-" else open(path, "r", encoding="utf-8")
-    try:
-        for line in fh:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                rec = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            if rec.get("log_type") in ("nginx-access", "apache-access"):
-                yield rec
-    finally:
-        if path != "-":
-            fh.close()
+    yield from _hc.iter_ndjson(path, log_type=("nginx-access", "apache-access"))
 
 
 def main(argv=None) -> int:

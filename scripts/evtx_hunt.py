@@ -75,6 +75,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable, Iterator
 
+# Shared helpers (pure stdlib). sys.path bootstrap keeps the script runnable
+# standalone as `python3 scripts/evtx_hunt.py` without PYTHONPATH/pip.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import hvv_common as _hc  # noqa: E402
+
 VERSION = "0.3-M1"
 
 # ---- constants ---------------------------------------------------------------
@@ -177,26 +182,7 @@ RULE_ACTION = {
 # ---- utility -----------------------------------------------------------------
 
 def parse_ts(s: Any) -> datetime | None:
-    if not s:
-        return None
-    if isinstance(s, datetime):
-        return s if s.tzinfo else s.replace(tzinfo=timezone.utc)
-    s = str(s).strip().replace("Z", "+00:00")
-    for fmt in (None,
-                "%Y-%m-%dT%H:%M:%S.%f",
-                "%Y-%m-%dT%H:%M:%S",
-                "%Y-%m-%d %H:%M:%S",
-                "%m/%d/%Y %H:%M:%S %p",
-                "%m/%d/%Y %I:%M:%S %p"):
-        try:
-            if fmt is None:
-                dt = datetime.fromisoformat(s)
-            else:
-                dt = datetime.strptime(s, fmt)
-            return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
-        except Exception:
-            continue
-    return None
+    return _hc.parse_ts(s, assume_utc=True)
 
 
 def _basename_lower(path: Any) -> str:
@@ -357,7 +343,6 @@ def iter_from_evtx(path: str) -> Iterator[dict]:
 # ---- finding emitter ---------------------------------------------------------
 
 def emit(findings: list[dict], rule_id: str, rec: dict, extra: dict, id_prefix: str = "IR-WIN") -> None:
-    n = len(findings) + 1
     ts = rec.get("ts")
     if isinstance(ts, datetime):
         ts_iso = ts.isoformat()
@@ -375,17 +360,17 @@ def emit(findings: list[dict], rule_id: str, rec: dict, extra: dict, id_prefix: 
         "event_data":    {k: v for k, v in (rec.get("data") or {}).items() if v is not None},
     }
     ev.update(extra or {})
-    iocs = _extract_iocs(rec)
-    findings.append({
-        "id":                 f"{id_prefix}-{n:03d}",
-        "severity":           RULE_SEVERITY.get(rule_id, "P3"),
-        "category":           RULE_CATEGORY.get(rule_id, "其他"),
-        "evidence":           ev,
-        "rule_id":            rule_id,
-        "false_positive_prob": RULE_FP_PROB.get(rule_id, 0.4),
-        "recommended_action": RULE_ACTION.get(rule_id, "纳入待跟进"),
-        "iocs":               iocs,
-    })
+    _hc.emit_finding(
+        findings,
+        id_prefix=id_prefix,
+        severity=RULE_SEVERITY.get(rule_id, "P3"),
+        category=RULE_CATEGORY.get(rule_id, "其他"),
+        evidence=ev,
+        rule_id=rule_id,
+        fp_prob=RULE_FP_PROB.get(rule_id, 0.4),
+        action=RULE_ACTION.get(rule_id, "纳入待跟进"),
+        iocs=_extract_iocs(rec),
+    )
 
 
 def _extract_iocs(rec: dict) -> list[dict]:

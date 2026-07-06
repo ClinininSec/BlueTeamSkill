@@ -22,6 +22,9 @@ audit.jsonl
 sessions/
 collects/
 
+# 工具产物（firecrawl 抓取的本地参考材料，不入库）
+.firecrawl/
+
 # 临时输出
 /tmp/hvv-*
 *.pcap

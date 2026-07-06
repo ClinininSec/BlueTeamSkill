@@ -44,6 +44,11 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Iterable, Iterator
 
+# Shared helpers (pure stdlib). sys.path bootstrap keeps the script runnable
+# standalone as `python3 scripts/ioc_match.py` without PYTHONPATH/pip.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import hvv_common as _hc  # noqa: E402
+
 
 # ---------------------------------------------------------------------------
 # Loaders
@@ -221,14 +226,7 @@ def category_for_ioc(ioc: dict) -> str:
 # Main streaming
 # ---------------------------------------------------------------------------
 def iter_records(fp) -> Iterator[dict]:
-    for line in fp:
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            yield json.loads(line)
-        except json.JSONDecodeError:
-            continue
+    yield from _hc.iter_ndjson(fp)
 
 
 def match_record(rec: dict, idx: IocIndex) -> list[dict]:

@@ -46,6 +46,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Iterator, Optional
 
+# Shared helpers (pure stdlib). sys.path bootstrap keeps the script runnable
+# standalone as `python3 scripts/log_parser.py` without PYTHONPATH/pip.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import hvv_common as _hc  # noqa: E402
+
 
 # ---------------------------------------------------------------------------
 # Schema
@@ -405,19 +410,7 @@ def parse_json_array_file(path: Path) -> Iterator[dict[str, Any]]:
 # Filtering
 # ---------------------------------------------------------------------------
 def in_window(ts: str | None, since: str | None, until: str | None) -> bool:
-    if since is None and until is None:
-        return True
-    if not ts:
-        return True  # keep if we cannot decide
-    # Accept naive ISO compare (lexicographic works for well-formed ISO)
-    try:
-        if since and ts < since:
-            return False
-        if until and ts > until:
-            return False
-    except Exception:
-        return True
-    return True
+    return _hc.in_window(ts, since, until)
 
 
 # ---------------------------------------------------------------------------

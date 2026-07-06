@@ -24,14 +24,18 @@ Dependencies:
 """
 
 import argparse
-import datetime
-import json
 import os
 import pathlib
 import subprocess
 import sys
 import time
 import uuid
+
+# Shared helpers (pure stdlib). remote/ scripts sit one level below scripts/,
+# so bootstrap points at parent to find hvv_common.py. Keeps the script
+# runnable standalone as `python3 scripts/remote/remote_collect.py`.
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
+import hvv_common as _hc  # noqa: E402
 
 VERSION = "0.4-M0"
 
@@ -44,42 +48,14 @@ DEFAULT_AUDIT_LOG = "~/.hvv-defender/audit.jsonl"
 DEFAULT_LINUX_WORKDIR = "/tmp"
 DEFAULT_WINDOWS_WORKDIR = "C:\\Temp"
 
-
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
-
-
-def now_iso() -> str:
-    return datetime.datetime.now().astimezone().isoformat(timespec="seconds")
-
-
-def expand_path(p: str) -> str:
-    return os.path.abspath(os.path.expanduser(p))
-
-
-def compact_ts() -> str:
-    return datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
-
-
-def parse_target(target: str):
-    if "@" not in target:
-        return None, None, None
-    user, rest = target.split("@", 1)
-    if ":" in rest:
-        host, port_s = rest.rsplit(":", 1)
-        try:
-            port = int(port_s)
-        except ValueError:
-            return None, None, None
-        return user, host, port
-    return user, rest, None
-
-
-def append_audit(audit_path: str, record: dict):
-    p = pathlib.Path(expand_path(audit_path))
-    p.parent.mkdir(parents=True, exist_ok=True)
-    with open(p, "a", encoding="utf-8") as f:
-        f.write(json.dumps(record, ensure_ascii=False) + "\n")
+# Shared helpers reused from hvv_common: eprint / now_iso / compact_ts /
+# expand_path / parse_target / append_audit.
+eprint = _hc.eprint
+now_iso = _hc.now_iso
+expand_path = _hc.expand_path
+compact_ts = _hc.compact_ts
+parse_target = _hc.parse_target
+append_audit = _hc.append_audit
 
 
 def build_scp_cmd(args, direction: str, src: str, dst: str):
