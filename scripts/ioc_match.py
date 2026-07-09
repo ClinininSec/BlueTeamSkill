@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.11
 # -*- coding: utf-8 -*-
 """
 ioc_match.py — Match normalized NDJSON logs against IOC blocklists.
@@ -45,7 +45,7 @@ from pathlib import Path
 from typing import Any, Iterable, Iterator
 
 # Shared helpers (pure stdlib). sys.path bootstrap keeps the script runnable
-# standalone as `python3 scripts/ioc_match.py` without PYTHONPATH/pip.
+# standalone as `python3.11 scripts/ioc_match.py` without PYTHONPATH/pip.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import hvv_common as _hc  # noqa: E402
 

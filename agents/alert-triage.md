@@ -98,7 +98,7 @@ agent_output = call_agent(
 )
 
 # 主会话用 desensitize.py 二次复核脱敏
-final = subprocess.run(["python3", "scripts/desensitize.py", ...], input=agent_output)
+final = subprocess.run(["python3.11", "scripts/desensitize.py", ...], input=agent_output)
 ```
 
 ## 校验清单（主会话在使用前自查）

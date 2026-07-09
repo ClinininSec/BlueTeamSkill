@@ -112,7 +112,7 @@ v0.1 不内置自动化脚本，引导用户手动采集：
 把多源时间戳合并为统一时间线：
 
 ```bash
-python scripts/timeline_build.py \
+python3.11 scripts/timeline_build.py \
   --auth /tmp/hvv-ir-<host>/var/log/auth.log \
   --nginx /tmp/hvv-ir-<host>/var/log/nginx/access.log \
   --syslog /tmp/hvv-ir-<host>/var/log/messages \

@@ -5,7 +5,7 @@ description: |
 
   当用户说 "帮我看这批告警 / 分诊 SIEM 告警 / 值守日报 / 审计 nginx / auth.log / 排查 SSH 暴破 / webshell 扫描 / 分析 pcap / wireshark 抓包 / tcpdump / 识别 C2 / JA3 指纹 / DNS 隧道 / 主机怀疑被入侵 / 应急响应 / 还原攻击链 / 出事件报告 / evtx 分析 / Windows 主机排查 / NGSOC / 深信服 SIP / 长亭雷池 / 明御 WAF / 远程 SSH 采集 / 远程执行命令 / 提取 IOC / 这个 IP 是不是 C2 / 这个 hash 有没有见过 / log4j 检测规则怎么写" 中的任一类时，优先激活本 skill。
 
-  设计原则：离线优先 + 授权远程；脱敏内建；每条告警必附证据；红线三条：不出 PoC / 不做破坏动作 / 不做横移。首次使用先跑 `bash scripts/hvv_init.sh` 装依赖（tshark + python3 + sshpass/expect）。当前版本 v0.4-M1，历史版本见 `references/CHANGELOG.md`。
+  设计原则：离线优先 + 授权远程；脱敏内建；每条告警必附证据；红线三条：不出 PoC / 不做破坏动作 / 不做横移。首次使用先跑 `bash scripts/hvv_init.sh` 装依赖（tshark + python3.11 + sshpass/expect）。当前版本 v0.4-M1，历史版本见 `references/CHANGELOG.md`。
 allowed-tools:
   - Read
   - Write
@@ -80,7 +80,7 @@ bash scripts/hvv_init.sh
 
 **它做什么**：
 1. 探测系统 + 包管理器（macOS brew / Debian & Ubuntu apt / RHEL & Fedora dnf/yum / Alpine apk / Arch pacman / openSUSE zypper）
-2. 装硬依赖：`tshark`（traffic 模式必需）+ `python3`（所有脚本必需）
+2. 装硬依赖：`tshark`（traffic 模式必需）+ `python3.11`（所有脚本必需）
 3. 装 remote 模式密码认证可选依赖：`sshpass`（主）+ `expect`（备）；二者至少一个可用即达标，都装最稳
 4. 二次确认所有依赖已入 PATH，输出每个工具的绝对路径
 5. Windows 系统会打印手工安装指引后退出（不自动装）

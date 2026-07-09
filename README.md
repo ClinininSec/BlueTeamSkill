@@ -4,7 +4,7 @@
   <a href="https://github.com/ClinininSec/BlueTeamSkill"><img alt="version" src="https://img.shields.io/badge/version-v0.4--M0-blue"></a>
   <a href="https://github.com/ClinininSec/BlueTeamSkill/blob/main/LICENSE"><img alt="license" src="https://img.shields.io/badge/license-Apache--2.0-green"></a>
   <img alt="platform" src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20WSL-lightgrey">
-  <img alt="python" src="https://img.shields.io/badge/python-3.8%2B-blue">
+  <img alt="python" src="https://img.shields.io/badge/python-3.11%2B-blue">
   <img alt="tshark" src="https://img.shields.io/badge/tshark-required%20for%20traffic-orange">
   <img alt="claude-code" src="https://img.shields.io/badge/Claude%20Code-Skill-purple">
 </p>
@@ -67,7 +67,7 @@
 
 - macOS / Linux / WSL（Windows 会打印手工安装指引后退出）
 - Claude Code（`claude --version` 有输出）
-- 依赖：`python3` (≥3.8) + `tshark`（traffic 必需）+ `sshpass` / `expect`（remote 密码认证可选）
+- 依赖：`python3.11` + `tshark`（traffic 必需）+ `sshpass` / `expect`（remote 密码认证可选）
 
 ### 克隆 & 安装
 
@@ -236,7 +236,7 @@ IOC schema：`type` / `value`（脱敏）/ `confidence` / `first_seen` / `source
 
 1. **多 skill 合并为单会话工作流** — 上述参考项大多是**原子 skill**（一次做一件事）。hvv-defender 把「告警分诊 → 日志审计 → 流量分析 → 应急响应 → 远程采集」串成 monitor → audit → traffic → ir → remote **五模式升级链**，Claude 在**单个会话**里跨模式路由，无需重新加载 skill 上下文。
 
-2. **规则库脚本化 + 冷启动零外部依赖** — 参考 skill 里 `chainsaw` / `velociraptor` 是**外部工具**（要 subprocess 调用、要单独装、要处理版本兼容）。hvv-defender 把 **316 条规则**（68 traffic + 22 evtx + 36 webshell + 48 persistence + 38 sysmon + 60 tool + 51 IOC）打包成 JSON，一次性 Python 加载。运行时只需一个 `python3` 进程，不 subprocess、不联网。
+2. **规则库脚本化 + 冷启动零外部依赖** — 参考 skill 里 `chainsaw` / `velociraptor` 是**外部工具**（要 subprocess 调用、要单独装、要处理版本兼容）。hvv-defender 把 **316 条规则**（68 traffic + 22 evtx + 36 webshell + 48 persistence + 38 sysmon + 60 tool + 51 IOC）打包成 JSON，一次性 Python 加载。运行时只需一个 `python3.11` 进程，不 subprocess、不联网。
 
 3. **强制统一 8 字段输出契约** — 参考 skill 的告警输出格式**散在 markdown 里**，字段依赖 LLM 自由格式化。hvv-defender 在**脚本层**强制输出 `id / severity / category / evidence+行号 / rule_id / false_positive_prob / recommended_action / iocs` 8 字段，可直接管道到下游 SOAR / SIEM。
 

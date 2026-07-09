@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.11
 """vendor_field_mapper.py — 国产安全设备告警字段归一化脚本 (hvv-defender skill).
 
 用途: 把 4 家国产安全设备（QAX NGSOC / Sangfor SIP / 长亭 SafeLine WAF / 安恒明御 WAF）
@@ -7,8 +7,8 @@
 红线: 纯 stdlib / 不做网络调用 / 不做脱敏 (脱敏由 desensitize.py 负责)。
 
 用法:
-    python vendor_field_mapper.py --input alerts.json --vendor qax-ngsoc --output out.jsonl
-    python vendor_field_mapper.py --self-test
+    python3.11 vendor_field_mapper.py --input alerts.json --vendor qax-ngsoc --output out.jsonl
+    python3.11 vendor_field_mapper.py --self-test
 """
 from __future__ import annotations
 

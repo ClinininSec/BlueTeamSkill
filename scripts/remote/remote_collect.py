@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.11
 # -*- coding: utf-8 -*-
 """
 remote_collect.py -- hvv-defender remote mode collect orchestration.
@@ -33,7 +33,7 @@ import uuid
 
 # Shared helpers (pure stdlib). remote/ scripts sit one level below scripts/,
 # so bootstrap points at parent to find hvv_common.py. Keeps the script
-# runnable standalone as `python3 scripts/remote/remote_collect.py`.
+# runnable standalone as `python3.11 scripts/remote/remote_collect.py`.
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 import hvv_common as _hc  # noqa: E402
 

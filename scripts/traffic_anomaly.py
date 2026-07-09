@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.11
 # -*- coding: utf-8 -*-
 """
 traffic_anomaly.py — Rule engine for pcap-derived NDJSON.
@@ -61,7 +61,7 @@ from pathlib import Path
 from typing import Iterator
 
 # Shared helpers (pure stdlib). sys.path bootstrap keeps the script runnable
-# standalone as `python3 scripts/traffic_anomaly.py` without PYTHONPATH/pip.
+# standalone as `python3.11 scripts/traffic_anomaly.py` without PYTHONPATH/pip.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import hvv_common as _hc  # noqa: E402
 

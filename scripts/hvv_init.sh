@@ -6,12 +6,13 @@
 #
 # 需要的工具：
 #   - tshark    (traffic 模式必需)
-#   - python3   (所有脚本必需)
+#   - python3.11 (script  运行必需)
 #   - sshpass   (remote 模式密码认证必需；无 sshpass 时降级到 expect)
 #   - expect    (remote 模式密码认证的备选；sshpass 不可用时启用)
 #
-# 支持平台：macOS (brew) / Debian & Ubuntu (apt) / RHEL & Fedora (dnf/yum)
-#           / Alpine (apk) / Arch (pacman) / openSUSE (zypper)
+# 支持平台：macOS (brew) / Ubuntu (deadsnakes ppa) / Debian (apt)
+#           / RHEL & Fedora (dnf/yum) / Alpine (apk) / Arch (pacman)
+#           / openSUSE (zypper)
 # Windows 检测到会打印手工安装指引，不自动装。
 #
 # 合规：不外发数据、只装白名单工具、脚本本身不处理客户数据。
@@ -19,46 +20,12 @@
 
 set -uo pipefail
 
-# tshark / python3 是硬依赖；sshpass / expect 是 remote 模式的可选依赖。
+# tshark / python3.11 是硬依赖；sshpass / expect 是 remote 模式的可选依赖。
 # 二选一即可满足 remote 密码认证需求，都装最稳。
-REQUIRED=(tshark python3)
+REQUIRED=(tshark python3.11)
 OPTIONAL_REMOTE=(sshpass expect)
 
-# ---------- 1) 检查缺什么 ----------
-missing=()
-for cmd in "${REQUIRED[@]}"; do
-  command -v "$cmd" >/dev/null 2>&1 || missing+=("$cmd")
-done
-
-# 可选：remote 模式密码认证依赖
-# 策略：sshpass 是主选（-p 简洁 + ssh_probe.py 使用简单），expect 是备选（macOS brew 有时装 sshpass 失败）
-# 目标：sshpass 与 expect 都尽量装；至少一个 ready 才算合格
-missing_optional=()
-for cmd in "${OPTIONAL_REMOTE[@]}"; do
-  command -v "$cmd" >/dev/null 2>&1 || missing_optional+=("$cmd")
-done
-remote_pw_ready=0
-if command -v sshpass >/dev/null 2>&1 || command -v expect >/dev/null 2>&1; then
-  remote_pw_ready=1
-fi
-
-# fast-path：全部都已装（硬依赖 + 两个可选都在）
-if [[ ${#missing[@]} -eq 0 && ${#missing_optional[@]} -eq 0 ]]; then
-  echo "[OK] 所有依赖已就绪：${REQUIRED[*]} ${OPTIONAL_REMOTE[*]}"
-  for cmd in "${REQUIRED[@]}" "${OPTIONAL_REMOTE[@]}"; do
-    echo "     $cmd → $(command -v "$cmd")"
-  done
-  exit 0
-fi
-
-if [[ ${#missing[@]} -gt 0 ]]; then
-  echo "[INFO] 缺失硬依赖：${missing[*]}"
-fi
-if [[ ${#missing_optional[@]} -gt 0 ]]; then
-  echo "[INFO] remote 模式密码认证工具缺：${missing_optional[*]}（推荐 sshpass + expect 都装）"
-fi
-
-# ---------- 2) 决定包管理器 ----------
+# ---------- 1) 决定包管理器 ----------
 uname_s=$(uname -s)
 case "$uname_s" in
   Darwin*)
@@ -76,25 +43,25 @@ case "$uname_s" in
     elif command -v pacman  >/dev/null 2>&1; then INSTALL="sudo pacman -S --noconfirm"
     elif command -v zypper  >/dev/null 2>&1; then INSTALL="sudo zypper install -y"
     else
-      echo "[ERR] 未识别 Linux 包管理器，请手动安装：${missing[*]}"
+      echo "[ERR] 未识别 Linux 包管理器，请手动安装：${REQUIRED[*]} ${OPTIONAL_REMOTE[*]}"
       exit 1
     fi
     ;;
   MINGW*|MSYS*|CYGWIN*)
-    echo "[ERR] Windows 无法自动安装。请手动装以下工具：${missing[*]} ${OPTIONAL_REMOTE[*]}"
-    echo "      tshark  : https://www.wireshark.org/download.html  (或 choco install wireshark)"
-    echo "      python3 : https://www.python.org/downloads/         (或 choco install python)"
-    echo "      sshpass : Windows 上一般用 WSL + apt install sshpass；纯 Win 用 Plink / PuTTY -pw"
-    echo "      expect  : choco install expect (需 ActiveTcl) 或 WSL + apt install expect"
+    echo "[ERR] Windows 无法自动安装。请手动装以下工具："
+    echo "      python3.11 : https://www.python.org/downloads/         (或 choco install python311)"
+    echo "      tshark     : https://www.wireshark.org/download.html   (或 choco install wireshark)"
+    echo "      sshpass    : Windows 上一般用 WSL + apt install sshpass；纯 Win 用 Plink / PuTTY -pw"
+    echo "      expect     : choco install expect (需 ActiveTcl) 或 WSL + apt install expect"
     exit 1
     ;;
   *)
-    echo "[ERR] 不支持的平台 $uname_s。请手动安装：${missing[*]}"
+    echo "[ERR] 不支持的平台 $uname_s。请手动安装：${REQUIRED[*]}"
     exit 1
     ;;
 esac
 
-# ---------- 3) 工具名 → 包名（大部分同名；tshark 与 sshpass/expect 有平台差异） ----------
+# ---------- 2) 工具名 → 包名（大部分同名；tshark 与 sshpass/expect 有平台差异） ----------
 pkg_of() {
   case "$1" in
     tshark)
@@ -116,12 +83,71 @@ pkg_of() {
         *)       echo "sshpass" ;;
       esac
       ;;
+    python3.11)
+      case "$uname_s" in
+        Darwin*) echo "python@3.11" ;;
+        Linux*)
+          # pacman / zypper 系包名无点；其余发行版均为 python3.11
+          if command -v pacman >/dev/null 2>&1 || command -v zypper >/dev/null 2>&1; then
+            echo "python311"
+          else
+            echo "python3.11"
+          fi
+          ;;
+      esac
+      ;;
     expect) echo "expect" ;;
     *) echo "$1" ;;
   esac
 }
 
-# ---------- 4a) 硬依赖 ----------
+# ---------- 3) 检查缺什么 ----------
+missing=()
+for cmd in "${REQUIRED[@]}"; do
+  command -v "$cmd" >/dev/null 2>&1 || missing+=("$cmd")
+done
+
+missing_optional=()
+for cmd in "${OPTIONAL_REMOTE[@]}"; do
+  command -v "$cmd" >/dev/null 2>&1 || missing_optional+=("$cmd")
+done
+
+# fast-path：全部都已装（硬依赖 + 两个可选都在）
+if [[ ${#missing[@]} -eq 0 && ${#missing_optional[@]} -eq 0 ]]; then
+  echo "[OK] 所有依赖已就绪：${REQUIRED[*]} ${OPTIONAL_REMOTE[*]}"
+  for cmd in "${REQUIRED[@]}" "${OPTIONAL_REMOTE[@]}"; do
+    echo "     $cmd → $(command -v "$cmd")"
+  done
+  exit 0
+fi
+
+if [[ ${#missing[@]} -gt 0 ]]; then
+  echo "[INFO] 缺失硬依赖：${missing[*]}"
+fi
+if [[ ${#missing_optional[@]} -gt 0 ]]; then
+  echo "[INFO] remote 模式密码认证工具缺：${missing_optional[*]}（推荐 sshpass + expect 都装）"
+fi
+
+# ---------- 4) 平台特定预处理：python3.11 源准备 ----------
+# Ubuntu 22.04 及之前的官方源默认不带 python3.11，deadsnakes 长期维护各版本 Python
+if [[ "$uname_s" == Linux* ]] && command -v apt-get >/dev/null 2>&1 \
+   && grep -iq ubuntu /etc/os-release 2>/dev/null \
+   && ! command -v python3.11 >/dev/null 2>&1; then
+  echo "[INFO] Ubuntu 上 python3.11 走 deadsnakes PPA ..."
+  sudo apt-get update -qq
+  sudo apt-get install -y software-properties-common
+  sudo add-apt-repository -y ppa:deadsnakes/ppa
+  sudo apt-get update -qq
+fi
+# RHEL / Fedora: python3.11 可能需要 EPEL；dnf/yum 安装失败时提示
+if [[ "$uname_s" == Linux* ]] && (command -v dnf >/dev/null 2>&1 || command -v yum >/dev/null 2>&1) \
+   && ! command -v python3.11 >/dev/null 2>&1; then
+  echo "[INFO] RHEL/Fedora 上 python3.11 可能需先启用 EPEL："
+  echo "       sudo dnf install -y epel-release   (RHEL/CentOS)"
+  echo "       sudo dnf install -y python3.11      (Fedora 37+ 直接可用)"
+fi
+
+# ---------- 5a) 硬依赖 ----------
 if [[ ${#missing[@]} -gt 0 ]]; then
   for cmd in "${missing[@]}"; do
     pkg=$(pkg_of "$cmd")
@@ -129,12 +155,13 @@ if [[ ${#missing[@]} -gt 0 ]]; then
     # shellcheck disable=SC2086
     if ! $INSTALL $pkg; then
       echo "[ERR] ${cmd} 安装失败，请手动排查"
+      echo "      若系统源无 ${pkg}，可用 pyenv 安装：curl https://pyenv.run | bash && pyenv install 3.11"
       exit 1
     fi
   done
 fi
 
-# ---------- 4b) remote 密码认证依赖（可选；能装几个装几个） ----------
+# ---------- 5b) remote 密码认证依赖（可选；能装几个装几个） ----------
 if [[ ${#missing_optional[@]} -gt 0 ]]; then
   installed_any=0
   for cmd in "${missing_optional[@]}"; do
@@ -156,7 +183,7 @@ if [[ ${#missing_optional[@]} -gt 0 ]]; then
   fi
 fi
 
-# ---------- 5) 二次确认 ----------
+# ---------- 6) 二次确认 ----------
 echo ""
 fail=0
 for cmd in "${REQUIRED[@]}"; do

@@ -68,7 +68,7 @@
 ### 3.3 跳板机场景（`--proxy-jump`）
 
 ```bash
-python scripts/ssh_probe.py \
+python3.11 scripts/ssh_probe.py \
   --target ops@svc-01 \
   --proxy-jump bastion@jump.corp.example.com \
   --cmd-id list-processes \
@@ -110,7 +110,7 @@ python scripts/ssh_probe.py \
 **为什么要预演**：让用户在执行前看到"要发出的命令 / 涉及的主机 / 涉及的 Tier"清单，避免误执行。
 
 ```bash
-python scripts/remote_collect.py \
+python3.11 scripts/remote_collect.py \
   --target ops@svc-01 \
   --profile linux-basic \
   --authorized-by "ticket-#20260701-042" \
@@ -137,13 +137,13 @@ Proceed? [y/N]
 
 ```bash
 # 单命令
-python scripts/ssh_probe.py \
+python3.11 scripts/ssh_probe.py \
   --target ops@svc-01 \
   --cmd-id list-processes \
   --authorized-by "ticket-#20260701-042"
 
 # 批量
-python scripts/remote_collect.py \
+python3.11 scripts/remote_collect.py \
   --target ops@svc-01 \
   --profile linux-basic \
   --authorized-by "ticket-#20260701-042" \
@@ -165,7 +165,7 @@ python scripts/remote_collect.py \
 远程拿回的 stdout 内含真实内网 IP / hostname / 用户名，直接送入下游前必须脱敏：
 
 ```bash
-python scripts/desensitize.py \
+python3.11 scripts/desensitize.py \
   --input ~/.hvv-defender/sessions/svc-01-20260701T143012Z/stdout-list-processes.txt \
   --internal-cidr "10.0.0.0/8,192.168.0.0/16" \
   --internal-domain "*.corp.example.com" \

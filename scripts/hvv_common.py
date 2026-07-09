@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.11
 # -*- coding: utf-8 -*-
 """
 hvv_common.py — shared helpers for hvv-defender scripts.
@@ -6,7 +6,7 @@ hvv_common.py — shared helpers for hvv-defender scripts.
 定位
 ----
 跨脚本复用的纯函数集合。每个 hvv-defender 检测脚本原本都自包含（为了满足
-"单脚本可独立 `python3 xxx.py` 运行 + 冷启动零外部依赖"两条硬约束），导致 parse_ts /
+"单脚本可独立 `python3.11 xxx.py` 运行 + 冷启动零外部依赖"两条硬约束），导致 parse_ts /
 iter_ndjson / emit / in_window 等工具函数在 8 个脚本里逐字复制。本模块把这些
 重复提炼到一处单点维护。
 

@@ -52,7 +52,7 @@
 
 ## v0.2.1 — 一键环境初始化
 
-- `scripts/hvv_init.sh`：装 tshark + python3 + sshpass + expect（后两者是 remote 密码认证依赖）
+- `scripts/hvv_init.sh`：装 tshark + python3.11 + sshpass + expect（后两者是 remote 密码认证依赖）
 - 触发词：`/hvv-defender init`
 
 ---

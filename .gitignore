@@ -15,6 +15,7 @@ __pycache__/
 .idea/
 *.swp
 *~
+*.orig
 
 # Skill 运行时产物（用户本机敏感，绝不入库）
 ~/.hvv-defender/
