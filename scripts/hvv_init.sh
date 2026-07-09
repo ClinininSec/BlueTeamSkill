@@ -9,6 +9,7 @@
 #   - python3.11 (script  运行必需)
 #   - sshpass   (remote 模式密码认证必需；无 sshpass 时降级到 expect)
 #   - expect    (remote 模式密码认证的备选；sshpass 不可用时启用)
+#   - pyyaml    (vendor_field_mapper frontmatter 解析必需)
 #
 # 支持平台：macOS (brew) / Ubuntu (deadsnakes ppa) / Debian (apt)
 #           / RHEL & Fedora (dnf/yum) / Alpine (apk) / Arch (pacman)
@@ -180,6 +181,21 @@ if [[ ${#missing_optional[@]} -gt 0 ]]; then
   else
     echo "[WARN] sshpass / expect 都未装成功；remote 模式仍可用（只是不能走密码认证）"
     echo "       建议改用 SSH 公钥登录：ssh-copy-id user@host"
+  fi
+fi
+
+# ---------- 5c) Python 依赖 pyyaml（硬依赖；vendor_field_mapper 必需） ----------
+# vendor_field_mapper.py 用 yaml.safe_load 解析 vendor md frontmatter，无降级。
+if python3.11 -c "import yaml" >/dev/null 2>&1; then
+  echo "[OK] pyyaml 已就绪"
+else
+  echo "[INFO] 安装 Python 依赖 pyyaml ..."
+  if python3.11 -m pip install --quiet pyyaml >/dev/null 2>&1; then
+    echo "[OK] pyyaml 安装完成"
+  else
+    echo "[ERR] pyyaml 安装失败，vendor_field_mapper 无法运行"
+    echo "      可手动装：python3.11 -m pip install pyyaml"
+    exit 1
   fi
 fi
 

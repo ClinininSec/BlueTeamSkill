@@ -82,10 +82,11 @@ bash scripts/hvv_init.sh
 1. 探测系统 + 包管理器（macOS brew / Debian & Ubuntu apt / RHEL & Fedora dnf/yum / Alpine apk / Arch pacman / openSUSE zypper）
 2. 装硬依赖：`tshark`（traffic 模式必需）+ `python3.11`（所有脚本必需）
 3. 装 remote 模式密码认证可选依赖：`sshpass`（主）+ `expect`（备）；二者至少一个可用即达标，都装最稳
-4. 二次确认所有依赖已入 PATH，输出每个工具的绝对路径
-5. Windows 系统会打印手工安装指引后退出（不自动装）
+4. 装可选 Python 依赖：`pyyaml`（vendor_field_mapper frontmatter 解析必需）
+5. 二次确认所有依赖已入 PATH，输出每个工具的绝对路径
+6. Windows 系统会打印手工安装指引后退出（不自动装）
 
-**退出码**：`0` 硬依赖就绪；非 0 有硬依赖装不上需手动排查。`sshpass` / `expect` 都未装成功只 WARN，remote 模式将强制改用 SSH 公钥登录。
+**退出码**：`0` 硬依赖就绪；非 0 有硬依赖装不上需手动排查。`sshpass` / `expect` 都未装成功只 WARN，remote 模式将强制改用 SSH 公钥登录。`pyyaml` 装失败会 exit 1（vendor_field_mapper 无降级）。
 
 当用户说"初始化 hvv-defender / 装依赖 / 环境自检 / `/hvv-defender init`"时，执行 `bash scripts/hvv_init.sh`。
 

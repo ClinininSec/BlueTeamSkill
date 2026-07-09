@@ -696,7 +696,8 @@ def main(argv: list[str] | None = None) -> int:
     payload = "\n".join(text_lines) + ("\n" if text_lines else "")
     if args.output:
         Path(args.output).write_text(payload, encoding="utf-8")
-        print(f"[*] wrote {len(findings)} finding(s) to {args.output}", file=sys.stderr)
+        if not args.quiet:
+            print(f"[*] wrote {len(findings)} finding(s) to {args.output}", file=sys.stderr)
     else:
         sys.stdout.write(payload)
 
@@ -725,6 +726,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--self-test", action="store_true",
                    help="Run built-in synthetic events and exit non-zero on failure")
     p.add_argument("-v", "--verbose", action="store_true")
+    p.add_argument("-q", "--quiet", action="store_true",
+                   help="Suppress stderr progress info (errors still shown)")
     return p.parse_args(argv)
 
 

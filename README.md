@@ -67,7 +67,7 @@
 
 - macOS / Linux / WSL（Windows 会打印手工安装指引后退出）
 - Claude Code（`claude --version` 有输出）
-- 依赖：`python3.11` + `tshark`（traffic 必需）+ `sshpass` / `expect`（remote 密码认证可选）
+- 依赖：`python3.11` + `tshark`（traffic 必需）+ `sshpass` / `expect`（remote 密码认证可选）+ `pyyaml`（vendor_field_mapper 必需）
 
 ### 克隆 & 安装
 

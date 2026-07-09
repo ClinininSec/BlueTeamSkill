@@ -4,7 +4,8 @@
 用途: 把 4 家国产安全设备（QAX NGSOC / Sangfor SIP / 长亭 SafeLine WAF / 安恒明御 WAF）
 的告警 JSON/CSV 归一化为 hvv-defender skill 的 12 字段标准 schema。
 
-红线: 纯 stdlib / 不做网络调用 / 不做脱敏 (脱敏由 desensitize.py 负责)。
+红线: 不做网络调用 / 不做脱敏 (脱敏由 desensitize.py 负责)。
+      依赖 PyYAML 解析 vendor md frontmatter（hvv_init.sh 安装）。
 
 用法:
     python3.11 vendor_field_mapper.py --input alerts.json --vendor qax-ngsoc --output out.jsonl
@@ -20,6 +21,8 @@ import os
 import re
 import sys
 from typing import Any
+
+import yaml
 
 # ---------------- 常量 ----------------
 
@@ -43,97 +46,18 @@ CATEGORY_ALIASES = ["category", "attack_type", "event_type", "threat_type",
 
 # ---------------- 极简 frontmatter YAML 解析 ----------------
 
-def _strip_quotes(v: str) -> str:
-    v = v.strip()
-    if len(v) >= 2 and v[0] == v[-1] and v[0] in ('"', "'"):
-        return v[1:-1]
-    return v
-
-
-def _parse_scalar(v: str) -> Any:
-    """把 'foo' / '"bar"' / '123' / '' 转成合适的 Python 值."""
-    v = v.strip()
-    if v == "":
-        return None
-    if len(v) >= 2 and v[0] == v[-1] and v[0] in ('"', "'"):
-        return v[1:-1]
-    if re.match(r"^-?\d+$", v):
-        try:
-            return int(v)
-        except ValueError:
-            return v
-    return v
-
-
-def _parse_inline_list(v: str) -> list:
-    """解析 [a, b, c] 行内列表."""
-    v = v.strip()
-    if not (v.startswith("[") and v.endswith("]")):
-        return [v]
-    inner = v[1:-1].strip()
-    if not inner:
-        return []
-    return [_strip_quotes(p) for p in inner.split(",") if p.strip()]
-
-
 def parse_frontmatter(md_text: str) -> dict:
-    """极简 YAML frontmatter 解析器, 支持 key: scalar / key: [inline_list] /
-    key:\\n  nested_key: v (2-space indent) / key:\\n  - list_item.
-    仅支持本 skill vendor md 用到的极简子集."""
+    """解析 markdown frontmatter（```--- ... ---``` 之间的 YAML），返回 dict。
+
+    用 PyYAML safe_load；frontmatter 必须解析为 mapping，否则抛 ValueError。
+    """
     m = re.match(r"^---\s*\n(.*?)\n---\s*\n", md_text, re.DOTALL)
     if not m:
         raise ValueError("no frontmatter found (missing leading `---` block)")
-    body = m.group(1)
-    root: dict = {}
-    stack: list[tuple[int, Any]] = [(0, root)]
-    current_key: str | None = None
-
-    for raw in body.split("\n"):
-        line = raw.rstrip()
-        if not line.strip() or line.strip().startswith("#"):
-            continue
-        indent = len(line) - len(line.lstrip(" "))
-        stripped = line.strip()
-
-        while stack and stack[-1][0] > indent:
-            stack.pop()
-        _, container = stack[-1]
-
-        # 缩进列表项
-        if stripped.startswith("- "):
-            item_val = _parse_scalar(stripped[2:].strip())
-            if isinstance(container, list):
-                container.append(item_val)
-            else:
-                if current_key is None:
-                    continue
-                if not isinstance(container.get(current_key), list):
-                    container[current_key] = []
-                container[current_key].append(item_val)
-                if stack[-1][1] is not container[current_key]:
-                    stack.append((indent, container[current_key]))
-            continue
-
-        # key: value
-        if ":" in stripped:
-            key, _, val = stripped.partition(":")
-            key, val = key.strip(), val.strip()
-            while stack and isinstance(stack[-1][1], list):
-                stack.pop()
-            _, container = stack[-1]
-
-            if val == "":
-                container[key] = {}
-                stack.append((indent + 2, container[key]))
-                current_key = key
-            elif val.startswith("["):
-                container[key] = _parse_inline_list(val)
-                current_key = key
-            else:
-                container[key] = _parse_scalar(val)
-                current_key = key
-
-    return root
+    loaded = yaml.safe_load(m.group(1))
+    if not isinstance(loaded, dict):
+        raise ValueError("frontmatter did not parse to a mapping")
+    return loaded
 
 
 def load_vendor_config(vendor: str, vendor_dir: str) -> dict:

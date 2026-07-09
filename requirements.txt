@@ -1,0 +1,6 @@
+# hvv-defender Python 依赖
+#
+# 项目原为纯 stdlib（冷启动零外部依赖）。v0.4-M1 起按需引入依赖。
+# pyyaml 为 vendor_field_mapper.py 必需（解析 vendor md frontmatter），由 hvv_init.sh 安装。
+
+pyyaml>=6.0
