@@ -66,7 +66,7 @@
 **必须**过一次 `desensitize.py`：
 
 ```bash
-python3.11 scripts/desensitize.py \
+python3 scripts/desensitize.py \
   --input ~/.hvv-defender/audit.jsonl \
   --output ~/.hvv-defender/audit-desens.jsonl \
   --mode strict \

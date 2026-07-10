@@ -112,7 +112,7 @@ bash scripts/linux_quick_check.sh -o /tmp/hvv-collect-<host>.tar.gz
 把多源时间戳合并为统一时间线：
 
 ```bash
-python3.11 scripts/timeline_build.py \
+python3 scripts/timeline_build.py \
   --auth /tmp/hvv-ir-<host>/var/log/auth.log \
   --nginx /tmp/hvv-ir-<host>/var/log/nginx/access.log \
   --syslog /tmp/hvv-ir-<host>/var/log/messages \

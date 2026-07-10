@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.11
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 log_parser.py — Normalize heterogeneous logs into a unified NDJSON schema.
@@ -47,7 +47,7 @@ from pathlib import Path
 from typing import Any, Iterable, Iterator, Optional
 
 # Shared helpers (pure stdlib). sys.path bootstrap keeps the script runnable
-# standalone as `python3.11 scripts/log_parser.py` without PYTHONPATH/pip.
+# standalone as `python3 scripts/log_parser.py` without PYTHONPATH/pip.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import hvv_common as _hc  # noqa: E402
 

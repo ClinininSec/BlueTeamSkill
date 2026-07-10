@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.11
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 webshell_scan.py — Static scanner for webshells in a target directory.

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.11
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 timeline_build.py — Merge multiple NDJSON log streams into a sorted timeline.
@@ -41,7 +41,7 @@ from pathlib import Path
 from typing import Iterator
 
 # Shared helpers (pure stdlib). sys.path bootstrap keeps the script runnable
-# standalone as `python3.11 scripts/timeline_build.py` without PYTHONPATH/pip.
+# standalone as `python3 scripts/timeline_build.py` without PYTHONPATH/pip.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import hvv_common as _hc  # noqa: E402
 

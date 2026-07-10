@@ -56,7 +56,7 @@
 
 **调用**：
 ```bash
-python3.11 scripts/nginx_anomaly.py \
+python3 scripts/nginx_anomaly.py \
   --input /var/log/nginx/access.log \
   --since "2026-06-30T08:00" \
   --until "2026-06-30T18:00" \
@@ -96,7 +96,7 @@ python3.11 scripts/nginx_anomaly.py \
 
 **调用**：
 ```bash
-python3.11 scripts/auth_log_audit.py \
+python3 scripts/auth_log_audit.py \
   --input /var/log/auth.log \
   --since "2026-06-29T00:00" \
   --output /tmp/hvv-audit-auth.jsonl
@@ -165,7 +165,7 @@ field_map:
 
 **流程差异**（相对 3.1-3.5 的原始日志审计）：
 
-1. **入口脚本**：`python3.11 scripts/vendor_field_mapper.py --input <厂商导出> --vendor <name> --output /tmp/hvv-audit-vendor.jsonl`
+1. **入口脚本**：`python3 scripts/vendor_field_mapper.py --input <厂商导出> --vendor <name> --output /tmp/hvv-audit-vendor.jsonl`
 2. **字段抽屉**：读 `references/log-fields/vendor-<name>.md` frontmatter（4 家：qax-ngsoc / sangfor-sip / changting-safeline / dbappsec-mingyu），完成 12 字段 + severity + category 归一化。
 3. **审计视角切换**：厂商告警是"设备已判定"结果，audit 关注**误报 / 漏报 / 真实命中的深度证据**：
    - 高危批次的 TP/FP 抽样评估（每 50 条抽 5 条人工核）

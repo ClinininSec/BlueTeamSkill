@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.11
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 evtx_hunt.py — Offline Windows EVTX / CSV audit for HVV blue team.
@@ -47,7 +47,7 @@ Input paths
 
 CLI (short)
 -----------
-  python3.11 evtx_hunt.py [--evtx F | --csv F | --jsonl F] \
+  python3 evtx_hunt.py [--evtx F | --csv F | --jsonl F] \
       --output findings.jsonl \
       [--since ISO] [--until ISO] \
       [--sysmon-data data/sysmon-detection-rules.json] \
@@ -76,7 +76,7 @@ from pathlib import Path
 from typing import Any, Iterable, Iterator
 
 # Shared helpers (pure stdlib). sys.path bootstrap keeps the script runnable
-# standalone as `python3.11 scripts/evtx_hunt.py` without PYTHONPATH/pip.
+# standalone as `python3 scripts/evtx_hunt.py` without PYTHONPATH/pip.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import hvv_common as _hc  # noqa: E402
 

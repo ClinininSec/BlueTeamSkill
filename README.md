@@ -3,7 +3,7 @@
 <p align="center">
   <a href="https://github.com/ClinininSec/BlueTeamSkill/blob/main/LICENSE"><img alt="license" src="https://img.shields.io/badge/license-Apache--2.0-green"></a>
   <img alt="platform" src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20WSL-lightgrey">
-  <img alt="python" src="https://img.shields.io/badge/python-3.11%2B-blue">
+  <img alt="python" src="https://img.shields.io/badge/python-3.8%2B-blue">
   <img alt="tshark" src="https://img.shields.io/badge/tshark-required%20for%20traffic-orange">
   <img alt="claude-code" src="https://img.shields.io/badge/Claude%20Code-Skill-purple">
 </p>
@@ -83,7 +83,7 @@
 
 - macOS / Linux / WSL（Windows 会打印手工安装指引后退出）
 - Claude Code（`claude --version` 有输出）
-- 依赖：`python3.11` + `tshark`（traffic 必需）+ `sshpass` / `expect`（remote 密码认证可选）+ `pyyaml`（vendor_field_mapper 必需）
+- 依赖：`python3` + `tshark`（traffic 必需）+ `sshpass` / `expect`（remote 密码认证可选）+ `pyyaml`（vendor_field_mapper 必需）
 
 ### 克隆 & 安装
 

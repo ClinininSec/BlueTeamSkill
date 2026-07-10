@@ -92,7 +92,7 @@ grep -iE 'union[+%20\s/\*]+(all[+%20\s/\*]+)?select|information_schema|order[+%2
 
 # url-decoded 后再次匹配（很多 payload 是 % 编码的）
 awk -F'"' '{print $2}' access.log | while read line; do
-  python3.11 -c "import urllib.parse,sys; print(urllib.parse.unquote(sys.argv[1]))" "$line"
+  python3 -c "import urllib.parse,sys; print(urllib.parse.unquote(sys.argv[1]))" "$line"
 done | grep -iE 'union\s+select|sleep\(|extractvalue\('
 # 实际用 scripts/nginx_anomaly.py 跑
 

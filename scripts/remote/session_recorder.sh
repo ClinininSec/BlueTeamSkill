@@ -105,7 +105,7 @@ cat >&2 <<EOF
 [hvv-defender] DISCLAIMER: The recording captures plaintext commands and
 [hvv-defender]             responses (including any secrets typed at prompts).
 [hvv-defender]             Before delivering to the customer, run:
-[hvv-defender]             python3.11 scripts/desensitize.py --input "$SESSION_LOG"
+[hvv-defender]             python3 scripts/desensitize.py --input "$SESSION_LOG"
 EOF
 
 TS_START="$(date -Iseconds 2>/dev/null || date +%Y-%m-%dT%H:%M:%S%z)"

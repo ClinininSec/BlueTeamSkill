@@ -83,7 +83,7 @@ bash scripts/hvv_init.sh
 
 **它做什么**：
 1. 探测系统 + 包管理器（macOS brew / Debian & Ubuntu apt / RHEL & Fedora dnf/yum / Alpine apk / Arch pacman / openSUSE zypper）
-2. 装硬依赖：`tshark`（traffic 模式必需）+ `python3.11`（所有脚本必需）
+2. 装硬依赖：`tshark`（traffic 模式必需）+ `python3`（所有脚本必需）
 3. 装 remote 模式密码认证可选依赖：`sshpass`（主）+ `expect`（备）；二者至少一个可用即达标，都装最稳
 4. 装可选 Python 依赖：`pyyaml`（vendor_field_mapper frontmatter 解析必需）
 5. 二次确认所有依赖已入 PATH，输出每个工具的绝对路径

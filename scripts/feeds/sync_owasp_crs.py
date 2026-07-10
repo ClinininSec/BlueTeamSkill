@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.11
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 sync_owasp_crs.py — OWASP CRS 通用 Web 攻击正则 → traffic-signatures.json 同步器.
@@ -23,8 +23,8 @@ sync_owasp_crs.py — OWASP CRS 通用 Web 攻击正则 → traffic-signatures.j
 
 用法
 ----
-    python3.11 scripts/feeds/sync_owasp_crs.py            # 同步并合并到 data/traffic-signatures.json
-    python3.11 scripts/feeds/sync_owasp_crs.py --dry-run   # 只打印提取的条目，不写文件
+    python3 scripts/feeds/sync_owasp_crs.py            # 同步并合并到 data/traffic-signatures.json
+    python3 scripts/feeds/sync_owasp_crs.py --dry-run   # 只打印提取的条目，不写文件
 """
 from __future__ import annotations
 

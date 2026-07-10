@@ -601,7 +601,7 @@ if (-not $script:DryRunMode) {
         Write-Output ""
         Write-Output "Send the file back to the analyst via your standard secure channel."
         Write-Output "Example:  Copy over WinRM/SMB/SFTP to analyst intake."
-        Write-Output "Then feed 14-evtx-export/*.evtx into: python3.11 evtx_hunt.py --evtx <file> --output findings.jsonl"
+        Write-Output "Then feed 14-evtx-export/*.evtx into: python3 evtx_hunt.py --evtx <file> --output findings.jsonl"
     } catch {
         Write-Warning "Compress-Archive failed: $($_.Exception.Message)"
         Write-Warning "Uncompressed collector directory remains at: $OutDir"

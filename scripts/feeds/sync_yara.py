@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.11
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 sync_yara.py — YARA 通用 webshell 检测规则 → webshell-patterns.json 同步器.
@@ -21,8 +21,8 @@ strings（字符串 + 正则），转换为 hvv-defender webshell-patterns.json 
 
 用法
 ----
-    python3.11 scripts/feeds/sync_yara.py --local ~/Downloads/hvv-feeds/Yara-rules-master
-    python3.11 scripts/feeds/sync_yara.py --local <dir> --dry-run
+    python3 scripts/feeds/sync_yara.py --local ~/Downloads/hvv-feeds/Yara-rules-master
+    python3 scripts/feeds/sync_yara.py --local <dir> --dry-run
 """
 from __future__ import annotations
 

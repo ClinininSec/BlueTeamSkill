@@ -195,13 +195,13 @@
 
 ```bash
 # 若已装 python-evtx
-python3.11 evtx_hunt.py --evtx 14-evtx-export/Microsoft-Windows-Sysmon_Operational.evtx \
+python3 evtx_hunt.py --evtx 14-evtx-export/Microsoft-Windows-Sysmon_Operational.evtx \
                      --output findings.jsonl \
                      --sysmon-data ../data/sysmon-detection-rules.json
 
 # 或者驻场机纯 stdlib（客户 Windows 侧先转 CSV）
 # powershell> Get-WinEvent -Path 'X.evtx' | Export-Csv X.csv -NoTypeInformation -Encoding UTF8
-python3.11 evtx_hunt.py --csv X.csv --output findings.jsonl \
+python3 evtx_hunt.py --csv X.csv --output findings.jsonl \
                      --sysmon-data ../data/sysmon-detection-rules.json
 ```
 

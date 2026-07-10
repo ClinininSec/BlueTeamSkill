@@ -121,7 +121,7 @@ grep -iE 'T\(java\.lang|Runtime\.getRuntime|ProcessBuilder|new\s+java\.lang\.Pro
 
 # 命令注入特征（注意有大量误报，需要 url-decode 后再过）
 awk -F'"' '{print $2}' access.log \
-  | python3.11 -c "import sys,urllib.parse; [print(urllib.parse.unquote(l.strip())) for l in sys.stdin]" \
+  | python3 -c "import sys,urllib.parse; [print(urllib.parse.unquote(l.strip())) for l in sys.stdin]" \
   | grep -iE ';\s*(id|whoami|uname|cat\s+/etc/|ls\s+/|wget\s+|curl\s+)'
 
 # 异常 UA / Header 字段（攻击者常把 payload 塞在 UA / Referer / X-Forwarded-For）

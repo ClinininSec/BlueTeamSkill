@@ -75,7 +75,7 @@
 
 **调用脚本**：
 ```bash
-python3.11 scripts/log_parser.py \
+python3 scripts/log_parser.py \
   --mode alerts \
   --input ./alerts-20260630.json \
   --aliases references/log-fields/waf-fw-generic.md \
@@ -91,7 +91,7 @@ python3.11 scripts/log_parser.py \
 当输入是 4 家国产安全设备中任意一家导出的告警 JSON/CSV 时，主流程不必手写字段映射，可直接调用 `scripts/vendor_field_mapper.py` 生成标准 12 字段 NDJSON，随后喂给步骤 2 的 `ioc_match.py`。
 
 ```bash
-python3.11 scripts/vendor_field_mapper.py \
+python3 scripts/vendor_field_mapper.py \
   --input ./alerts-qax-20260630.json \
   --vendor qax-ngsoc \
   --output /tmp/hvv-monitor-normalized.jsonl
@@ -118,7 +118,7 @@ python3.11 scripts/vendor_field_mapper.py \
 
 **调用脚本**：
 ```bash
-python3.11 scripts/ioc_match.py \
+python3 scripts/ioc_match.py \
   --input /tmp/hvv-monitor-normalized.jsonl \
   --ioc data/ioc-builtin.json \
   --tools data/tool-signatures.json \
@@ -178,7 +178,7 @@ for user in unique(username):
 **主会话做什么**：调 `scripts/desensitize.py` 把 evidence / username / hostname / 内部 IP 全部脱敏。
 
 ```bash
-python3.11 scripts/desensitize.py \
+python3 scripts/desensitize.py \
   --input /tmp/hvv-monitor-triaged.jsonl \
   --internal-domain "*.corp.example.com" \
   --customer-name "<customer>" \

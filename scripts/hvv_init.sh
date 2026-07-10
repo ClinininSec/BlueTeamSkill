@@ -6,14 +6,13 @@
 #
 # 需要的工具：
 #   - tshark    (traffic 模式必需)
-#   - python3.11 (script  运行必需)
+#   - python3 (script  运行必需)
 #   - sshpass   (remote 模式密码认证必需；无 sshpass 时降级到 expect)
 #   - expect    (remote 模式密码认证的备选；sshpass 不可用时启用)
 #   - pyyaml    (vendor_field_mapper frontmatter 解析必需)
 #
-# 支持平台：macOS (brew) / Ubuntu (deadsnakes ppa) / Debian (apt)
-#           / RHEL & Fedora (dnf/yum) / Alpine (apk) / Arch (pacman)
-#           / openSUSE (zypper)
+# 支持平台：macOS (brew) / Debian & Ubuntu (apt) / RHEL & Fedora (dnf/yum)
+#           / Alpine (apk) / Arch (pacman) / openSUSE (zypper)
 # Windows 检测到会打印手工安装指引，不自动装。
 #
 # 合规：不外发数据、只装白名单工具、脚本本身不处理客户数据。
@@ -21,9 +20,9 @@
 
 set -uo pipefail
 
-# tshark / python3.11 是硬依赖；sshpass / expect 是 remote 模式的可选依赖。
+# tshark / python3 是硬依赖；sshpass / expect 是 remote 模式的可选依赖。
 # 二选一即可满足 remote 密码认证需求，都装最稳。
-REQUIRED=(tshark python3.11)
+REQUIRED=(tshark python3)
 OPTIONAL_REMOTE=(sshpass expect)
 
 # ---------- 1) 决定包管理器 ----------
@@ -50,7 +49,7 @@ case "$uname_s" in
     ;;
   MINGW*|MSYS*|CYGWIN*)
     echo "[ERR] Windows 无法自动安装。请手动装以下工具："
-    echo "      python3.11 : https://www.python.org/downloads/         (或 choco install python311)"
+    echo "      python3 : https://www.python.org/downloads/         (或 choco install python)"
     echo "      tshark     : https://www.wireshark.org/download.html   (或 choco install wireshark)"
     echo "      sshpass    : Windows 上一般用 WSL + apt install sshpass；纯 Win 用 Plink / PuTTY -pw"
     echo "      expect     : choco install expect (需 ActiveTcl) 或 WSL + apt install expect"
@@ -84,18 +83,10 @@ pkg_of() {
         *)       echo "sshpass" ;;
       esac
       ;;
-    python3.11)
-      case "$uname_s" in
-        Darwin*) echo "python@3.11" ;;
-        Linux*)
-          # pacman / zypper 系包名无点；其余发行版均为 python3.11
-          if command -v pacman >/dev/null 2>&1 || command -v zypper >/dev/null 2>&1; then
-            echo "python311"
-          else
-            echo "python3.11"
-          fi
-          ;;
-      esac
+    python3)
+      # python3 在所有受支持平台的包名均为 python3（macOS 系统自带 / brew 用 python3；
+      # 各 Linux 发行版默认源均有 python3）。不锁小版本，只要有 python3 即可运行。
+      echo "python3"
       ;;
     expect) echo "expect" ;;
     *) echo "$1" ;;
@@ -129,24 +120,7 @@ if [[ ${#missing_optional[@]} -gt 0 ]]; then
   echo "[INFO] remote 模式密码认证工具缺：${missing_optional[*]}（推荐 sshpass + expect 都装）"
 fi
 
-# ---------- 4) 平台特定预处理：python3.11 源准备 ----------
-# Ubuntu 22.04 及之前的官方源默认不带 python3.11，deadsnakes 长期维护各版本 Python
-if [[ "$uname_s" == Linux* ]] && command -v apt-get >/dev/null 2>&1 \
-   && grep -iq ubuntu /etc/os-release 2>/dev/null \
-   && ! command -v python3.11 >/dev/null 2>&1; then
-  echo "[INFO] Ubuntu 上 python3.11 走 deadsnakes PPA ..."
-  sudo apt-get update -qq
-  sudo apt-get install -y software-properties-common
-  sudo add-apt-repository -y ppa:deadsnakes/ppa
-  sudo apt-get update -qq
-fi
-# RHEL / Fedora: python3.11 可能需要 EPEL；dnf/yum 安装失败时提示
-if [[ "$uname_s" == Linux* ]] && (command -v dnf >/dev/null 2>&1 || command -v yum >/dev/null 2>&1) \
-   && ! command -v python3.11 >/dev/null 2>&1; then
-  echo "[INFO] RHEL/Fedora 上 python3.11 可能需先启用 EPEL："
-  echo "       sudo dnf install -y epel-release   (RHEL/CentOS)"
-  echo "       sudo dnf install -y python3.11      (Fedora 37+ 直接可用)"
-fi
+# ---------- 4) （python3 各受支持平台默认自带，无需版本特定源预处理）----------
 
 # ---------- 5a) 硬依赖 ----------
 if [[ ${#missing[@]} -gt 0 ]]; then
@@ -156,7 +130,7 @@ if [[ ${#missing[@]} -gt 0 ]]; then
     # shellcheck disable=SC2086
     if ! $INSTALL $pkg; then
       echo "[ERR] ${cmd} 安装失败，请手动排查"
-      echo "      若系统源无 ${pkg}，可用 pyenv 安装：curl https://pyenv.run | bash && pyenv install 3.11"
+      echo "      python3 可用 pyenv 安装：curl https://pyenv.run | bash && pyenv install 3"
       exit 1
     fi
   done
@@ -186,15 +160,15 @@ fi
 
 # ---------- 5c) Python 依赖 pyyaml（硬依赖；vendor_field_mapper 必需） ----------
 # vendor_field_mapper.py 用 yaml.safe_load 解析 vendor md frontmatter，无降级。
-if python3.11 -c "import yaml" >/dev/null 2>&1; then
+if python3 -c "import yaml" >/dev/null 2>&1; then
   echo "[OK] pyyaml 已就绪"
 else
   echo "[INFO] 安装 Python 依赖 pyyaml ..."
-  if python3.11 -m pip install --quiet pyyaml >/dev/null 2>&1; then
+  if python3 -m pip install --quiet pyyaml >/dev/null 2>&1; then
     echo "[OK] pyyaml 安装完成"
   else
     echo "[ERR] pyyaml 安装失败，vendor_field_mapper 无法运行"
-    echo "      可手动装：python3.11 -m pip install pyyaml"
+    echo "      可手动装：python3 -m pip install pyyaml"
     exit 1
   fi
 fi

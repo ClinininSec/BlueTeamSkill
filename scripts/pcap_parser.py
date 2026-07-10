@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.11
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 pcap_parser.py — tshark wrapper that normalizes pcap/pcapng into NDJSON.

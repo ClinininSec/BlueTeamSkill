@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.11
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 sync_et_open.py — ET Open 通用 Suricata 流量规则 → traffic-signatures.json 同步器.
@@ -21,8 +21,8 @@ sync_et_open.py — ET Open 通用 Suricata 流量规则 → traffic-signatures.
 
 用法
 ----
-    python3.11 scripts/feeds/sync_et_open.py --local ~/Downloads/hvv-feeds/et-open
-    python3.11 scripts/feeds/sync_et_open.py --local <dir> --dry-run
+    python3 scripts/feeds/sync_et_open.py --local ~/Downloads/hvv-feeds/et-open
+    python3 scripts/feeds/sync_et_open.py --local <dir> --dry-run
 """
 from __future__ import annotations
 

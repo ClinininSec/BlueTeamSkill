@@ -22,10 +22,10 @@
 
 ```bash
 # 同步并合并到 data/（默认）
-python3.11 scripts/feeds/sync_owasp_crs.py
+python3 scripts/feeds/sync_owasp_crs.py
 
 # 只预览不写文件
-python3.11 scripts/feeds/sync_owasp_crs.py --dry-run
+python3 scripts/feeds/sync_owasp_crs.py --dry-run
 ```
 
 ## 待实现（见项目根 todo.md）
