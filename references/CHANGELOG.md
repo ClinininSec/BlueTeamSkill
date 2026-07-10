@@ -4,7 +4,26 @@
 
 ---
 
-## v0.4-M1（当前）— 规范化统一终报
+## v0.4-M2（当前）— 激活死规则 + 规则源同步框架
+
+**让既有规则真正生效 + 引入外部规则源离线同步**
+
+- **激活 evtx_hunt 死规则**：
+  - `R-WIN-023`（sysmon 补充规则命中告警）—— 之前 sysmon 规则能匹配但命中后不 emit（硬编码 gate），现真正告警，severity 按规则自身 severity 映射
+  - `R-WIN-024`（持久化位置命中告警）—— 之前 `persistence_rules` 是死参数完全没消费，现按 Sysmon EID 11/12/13 的 `location` contains 匹配告警
+- **打通 JA3 数据流**：
+  - `traffic_anomaly.py` tls 分发补 `ja3`/`ja3s`/`cipher` case —— `SIG-TRAF-087+` JA3 签名 + 硬编码 `KNOWN_JA3_C2` dict 真正生效（之前 tls 分发只认 sni/cert_cn/cert_issuer）
+  - `pcap_parser.py` view_tls 补 `tls.handshake.ja3`/`ja3s` 输出 —— 之前 pcap_parser 根本不输出 ja3，导致整个 JA3 检测链路是死的
+- **规则源同步框架** `scripts/feeds/`：
+  - `sync_owasp_crs.py` —— OWASP CRS 通用 Web 攻击正则 → `traffic-signatures.json`（http view）；状态机解析 SecRule `@rx`，正确处理转义双引号 + 续行，Python re 兼容性校验，幂等合并去重
+  - `README.md` —— feeds 设计原则（离线优先/红线/幂等）+ 待实现同步器清单
+- **路线图** `todo.md`（项目根）—— 阶段 0 已完成项 + 6 个待实现规则源 + 国产设备扩充 + 国内威胁情报 + MITRE ATT&CK 映射 + MCP 工具化
+
+**设计决策**：① 激活死规则优先于灌新规则（否则灌进去不告警）；② 规则源同步器构建期离线拉取，运行时零外发，兼容离线优先；③ 国外通用源（OWASP CRS/Sigma/ET Open/YARA）+ 国内针对性源（kunpeng/wsm 等）结合；④ 红线贯穿——同步器只提取检测特征，不输出可复现 PoC。
+
+---
+
+## v0.4-M1 — 规范化统一终报
 
 **跨模式统一结论报告 + 机器可读伴生文件**
 

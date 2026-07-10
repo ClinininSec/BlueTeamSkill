@@ -224,13 +224,15 @@ def view_tls(tshark: str, pcap: Path, quiet: bool) -> Iterator[dict]:
         "tls.handshake.extensions_server_name",
         "tls.handshake.version",
         "tls.handshake.ciphersuite",
+        "tls.handshake.ja3",
+        "tls.handshake.ja3s",
     ]
     lines = _run_tshark(tshark, pcap, "tls.handshake.type == 1", fields, quiet)
     _log(f"view=tls_client_hello tshark_lines={len(lines)}", quiet)
     seen_streams: set[str] = set()
     out_records: list[dict] = []
     for i, line in enumerate(lines, 1):
-        t, sip, dip, sp, dp, stream, sni, ver, cipher = _split(line, len(fields))
+        (t, sip, dip, sp, dp, stream, sni, ver, cipher, ja3, ja3s) = _split(line, len(fields))
         seen_streams.add(stream or "")
         out_records.append(_norm(
             "tls", _iso_ts(t), sip, dip, sp, dp, "tcp", stream,
@@ -240,6 +242,8 @@ def view_tls(tshark: str, pcap: Path, quiet: bool) -> Iterator[dict]:
                 "cert_issuer": None,
                 "version": ver or None,
                 "cipher": cipher or None,
+                "ja3": ja3 or None,
+                "ja3s": ja3s or None,
             },
             str(pcap), i,
         ))

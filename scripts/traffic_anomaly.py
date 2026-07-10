@@ -1243,6 +1243,12 @@ def detect(records: Iterator[dict], sigs: list[dict]) -> list[dict]:
                     val = cn
                 elif fld == "cert_issuer":
                     val = raw.get("cert_issuer") or ""
+                elif fld == "ja3":
+                    val = (raw.get("ja3") or raw.get("ja3_hash") or "").lower()
+                elif fld == "ja3s":
+                    val = (raw.get("ja3s") or raw.get("ja3s_hash") or "").lower()
+                elif fld == "cipher":
+                    val = raw.get("cipher") or ""
                 if val is not None and s["_re"].search(val):
                     # frp SNI => tunnel; other c2 => R-TRAF-007
                     if s.get("category") == "tunnel":
