@@ -282,11 +282,45 @@ def view_flow(tshark: str, pcap: Path, quiet: bool) -> Iterator[dict]:
     text = proc.stdout or ""
     lines = text.splitlines()
     _log(f"view=flow raw_lines={len(lines)}", quiet)
-    # conv,tcp format: <A> <-> <B> frames_a frames_b bytes_a bytes_b frames bytes rel_start duration
+
+    # 额外提取每流首包 payload 首 16 字节（hex），按 "ip:port<->ip:port" 关联，
+    # 供 traffic_anomaly 的 payload_first_bytes 签名匹配（frp/nps/stowaway 握手字节等）。
+    payload_by_pair: dict[str, str] = {}
+    pl_lines = _run_tshark(
+        tshark, pcap, "tcp.payload",
+        ["ip.src", "tcp.srcport", "ip.dst", "tcp.dstport", "tcp.payload"],
+        quiet,
+    )
+    for pl in pl_lines:
+        p = _split(pl, 5)
+        if len(p) < 5 or not p[4]:
+            continue
+        src, sp, dst, dp, payload_hex = p[0], p[1], p[2], p[3], p[4]
+        # 首字节十六进制前 32 字符 = 16 字节；解码为 latin-1 str（每字节1字符，无损，
+        # JSON 序列化为 \uXXXX），供 traffic_anomaly 的 \xNN 形式签名直接 search。
+        first_hex = payload_hex[:32]
+        if not first_hex:
+            continue
+        try:
+            first_str = bytes.fromhex(first_hex).decode("latin-1")
+        except ValueError:
+            continue
+        key1 = f"{src}:{sp}<->{dst}:{dp}"
+        key2 = f"{dst}:{dp}<->{src}:{sp}"
+        if key1 not in payload_by_pair and key2 not in payload_by_pair:
+            payload_by_pair[key1] = first_str
+    _log(f"view=flow payload_pairs={len(payload_by_pair)}", quiet)
+
+    # conv,tcp format (tshark ≥3.0):
+    #   <A>:<port> <-> <B>:<port>  <frames_a> <bytes_a> bytes  <frames_b> <bytes_b> bytes
+    #   <frames_total> <bytes_total> bytes  <rel_start> <duration>
+    # 兼容新旧格式（旧版无 "bytes" 后缀）。
     row_rx = re.compile(
         r"^\s*(\S+):(\d+)\s+<->\s+(\S+):(\d+)"
-        r"\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+"
-        r"([\d.]+)\s+([\d.]+)"
+        r"\s+(\d+)\s+(\d+)\s+bytes?"
+        r"\s+(\d+)\s+(\d+)\s+bytes?"
+        r"\s+(\d+)\s+(\d+)\s+bytes?"
+        r"\s+([\d.]+)\s+([\d.]+)"
     )
     i = 0
     for raw in lines:
@@ -296,6 +330,9 @@ def view_flow(tshark: str, pcap: Path, quiet: bool) -> Iterator[dict]:
         i += 1
         (a_ip, a_port, b_ip, b_port, frames_a, frames_b, bytes_a, bytes_b,
          frames_total, bytes_total, rel_start, duration) = m.groups()
+        pair_key = f"{a_ip}:{a_port}<->{b_ip}:{b_port}"
+        pfb = payload_by_pair.get(pair_key) or payload_by_pair.get(
+            f"{b_ip}:{b_port}<->{a_ip}:{a_port}")
         yield _norm(
             "flow", None, a_ip, b_ip, a_port, b_port, "tcp", None,
             {
@@ -307,6 +344,7 @@ def view_flow(tshark: str, pcap: Path, quiet: bool) -> Iterator[dict]:
                 "packets_a2b": int(frames_a),
                 "packets_b2a": int(frames_b),
                 "rel_start": float(rel_start),
+                "payload_first_bytes": pfb,  # hex 字符串，可能为 None
             },
             str(pcap), i,
         )

@@ -34,8 +34,9 @@
   - 补充 frp/nps/chisel/stowaway/suo5/reGeorg/gost/fscan/goby/xray/nuclei/yakit/viper 特征
 
 ### 消费端补强
-- [ ] `traffic_anomaly.py` flow 分发补 `payload_first_bytes` case
-  - 激活 frp/nps 等工具的握手字节检测（当前 flow view 只认 `dst_port`，握手字节是死字段）
+- [x] `traffic_anomaly.py` flow 分发补 `payload_first_bytes` case ✅ v0.4-M2
+  - 激活 frp/nps/stowaway/psExec/winexe/wmi/smb/reverse-shell/meterpreter 等 16 条握手字节签名
+  - 同步修 `pcap_parser.py` view_flow：① conv,tcp 行解析适配新版 tshark "bytes" 后缀（既有 bug）② 额外提取每流首包 payload（latin-1 str）填入 `payload_first_bytes`
 - [ ] `evtx_hunt.py` persistence `detection_type` 42 枚举全分支消费
   - 当前 R-WIN-024 只按 `location` contains 匹配，未按 `detection_type` 分流
 

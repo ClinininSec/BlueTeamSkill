@@ -22,6 +22,9 @@
   - `README.md` —— feeds 设计原则（离线优先/红线/幂等）+ 已实现/待实现同步器清单
   - 所有同步器支持 `--local` 指定本地已下载源目录（跳过克隆），`--dry-run` 预览
 - **消费端补强** `traffic_anomaly.py` http 分发补 `sqli`/`rce`/`xss`/`lfi`/`rfi` category 分支 —— CRS/ET 规则命中后承载 emit（R-TRAF-003 SQLi / R-TRAF-004 RCE / R-TRAF-002 XSS·LFI·RFI）
+- **flow 握手字节检测打通**：
+  - `pcap_parser.py` view_flow ① 修 conv,tcp 行解析适配新版 tshark "bytes" 后缀（既有 bug，导致 flow view 0 输出）② 额外提取每流首包 payload（latin-1 str）填入 `payload_first_bytes`
+  - `traffic_anomaly.py` flow 分发补 `payload_first_bytes` case —— 激活 frp/nps/stowaway/psExec/winexe/wmi/smb/reverse-shell/meterpreter 等 16 条握手字节签名（之前是死字段）
 - **路线图** `todo.md`（项目根）—— 阶段 0 已完成项 + 6 个待实现规则源 + 国产设备扩充 + 国内威胁情报 + MITRE ATT&CK 映射 + MCP 工具化
 
 **设计决策**：① 激活死规则优先于灌新规则（否则灌进去不告警）；② 规则源同步器构建期离线拉取，运行时零外发，兼容离线优先；③ 国外通用源（OWASP CRS/Sigma/ET Open/YARA）+ 国内针对性源（kunpeng/wsm 等）结合；④ 红线贯穿——同步器只提取检测特征，不输出可复现 PoC。

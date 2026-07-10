@@ -1339,6 +1339,9 @@ def detect(records: Iterator[dict], sigs: list[dict]) -> list[dict]:
                 val = ""
                 if fld == "dst_port":
                     val = str(dst_port) if dst_port is not None else ""
+                elif fld == "payload_first_bytes":
+                    # pcap_parser 输出为 latin-1 str（前 16 字节），\xNN 签名直接 search
+                    val = raw.get("payload_first_bytes") or ""
                 if val and s["_re"].search(val):
                     cat = s.get("category")
                     tool = (s.get("tool") or "").lower()
