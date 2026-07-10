@@ -41,6 +41,7 @@ __all__ = [
     "in_window",
     "iter_ndjson",
     "emit_finding",
+    "truncate",
     "eprint",
     "now_iso",
     "compact_ts",
@@ -238,6 +239,17 @@ def emit_finding(
         "iocs": iocs if iocs is not None else [],
     })
     return finding_id
+
+
+def truncate(s: str | None, n: int, ellipsis: str = "") -> str | None:
+    """截断字符串到 n 字符，可选加省略尾。
+
+    统一了 pcap_parser._truncate（纯截断）与 traffic_anomaly._mask（截断+…）。
+    None 透传 None；长度 ≤ n 原样返回；超长取前 n + ellipsis。
+    """
+    if s is None:
+        return None
+    return s if len(s) <= n else s[:n] + ellipsis
 
 
 # ──────────────────────────────────────────────────────────────────────────

@@ -47,6 +47,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterator
 
+# Shared helpers (pure stdlib). sys.path bootstrap keeps the script runnable
+# standalone as `python3 scripts/pcap_parser.py` without PYTHONPATH/pip.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import hvv_common as _hc  # noqa: E402
+
 TSHARK_TIMEOUT_S = 600
 FIELD_SEP = "|"
 INSTALL_HINT = (
@@ -91,12 +96,6 @@ def _mask_password(pw: str | None) -> str | None:
     if pw is None:
         return None
     return f"***<{len(pw)}>"
-
-
-def _truncate(s: str | None, n: int) -> str | None:
-    if s is None:
-        return None
-    return s if len(s) <= n else s[:n]
 
 
 def check_tshark() -> str:
@@ -178,7 +177,7 @@ def view_http(tshark: str, pcap: Path, quiet: bool) -> Iterator[dict]:
         p = _split(line, len(fields))
         (t, sip, dip, sp, dp, stream, method, host, uri, status, ua, ref,
          ctype, clen, req_line) = p
-        raw_line_excerpt = _truncate(req_line or "", 300)
+        raw_line_excerpt = _hc.truncate(req_line or "", 300)
         yield _norm(
             "http", _iso_ts(t), sip, dip, sp, dp, "tcp", stream,
             {

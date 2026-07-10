@@ -43,6 +43,11 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, Iterable, Iterator
 
+# Shared helpers (pure stdlib). sys.path bootstrap keeps the script runnable
+# standalone as `python3 scripts/webshell_scan.py` without PYTHONPATH/pip.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import hvv_common as _hc  # noqa: E402
+
 
 DEFAULT_EXTS = (
     ".php", ".phtml", ".php3", ".php4", ".php5",
@@ -189,7 +194,12 @@ def scan_file(path: Path, patterns: list[dict], verbose: bool = False) -> dict |
     }
 
 
-def build_finding(res: dict, seq: int) -> dict:
+def build_finding(findings: list[dict], res: dict, seq: int) -> str:
+    """用 hvv_common.emit_finding 构造 8 字段 webshell finding 并 append。
+
+    统一 finding 构造骨架（id=WS-NNN，seq 由调用方传入），与 auth/nginx/traffic/
+    evtx_hunt 走同一 emit 路径。返回 finding_id。
+    """
     primary_rule = res["hits"][0]["id"]
     rule_ids = ",".join(h["id"] for h in res["hits"][:5])
     evidence_lines = [
@@ -204,25 +214,27 @@ def build_finding(res: dict, seq: int) -> dict:
         "source": f"webshell_scan:{primary_rule}",
         "tag": "webshell",
     }]
-    return {
-        "id": f"WS-{seq:03d}",
-        "severity": res["severity"],
-        "category": "webshell",
-        "evidence": {
+    return _hc.emit_finding(
+        findings,
+        id_prefix="WS",
+        severity=res["severity"],
+        category="webshell",
+        evidence={
             "path": res["path"],
             "size": res["size"],
             "entropy": res["entropy"],
             "score": res["score"],
             "lines": evidence_lines,
         },
-        "rule_id": rule_ids,
-        "false_positive_prob": res["fp_prob"],
-        "recommended_action": (
+        rule_id=rule_ids,
+        fp_prob=res["fp_prob"],
+        action=(
             "立即对该文件 hash + 备份，断开 web 进程对其的访问，"
             "审计 web 服务器最近上传/写入路径与对应账号，移除前留 IOC。"
         ),
-        "iocs": iocs,
-    }
+        iocs=iocs,
+        seq=seq,
+    )
 
 
 def main(argv=None) -> int:
@@ -254,7 +266,7 @@ def main(argv=None) -> int:
         if res is None:
             continue
         suspicious += 1
-        findings.append(build_finding(res, suspicious))
+        build_finding(findings, res, suspicious)
 
     if args.verbose:
         print(f"[INFO] scanned={scanned} suspicious={suspicious}", file=sys.stderr)

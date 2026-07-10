@@ -474,9 +474,8 @@ def compile_signatures(sig_data: dict) -> list[dict]:
 
 
 def _mask(s: str | None, n: int = 200) -> str | None:
-    if s is None:
-        return None
-    return s if len(s) <= n else s[:n] + "…"
+    # 委托 hvv_common.truncate（截断 + 省略尾），保留本文件内短名避免 15 处调用点改动
+    return _hc.truncate(s, n, "…")
 
 
 # === v0.3-M1 helpers =========================================================
