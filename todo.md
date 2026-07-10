@@ -14,12 +14,17 @@
 - ✅ `scripts/feeds/sync_owasp_crs.py` — OWASP CRS 通用 Web 攻击正则 → `traffic-signatures.json`
   - 解析 SecRule `@rx`，提取 SQLi/RCE/XSS/LFI/RFI 通用正则，转 http view 条目
   - 状态机解析器（正确处理转义双引号 + 续行），Python re 兼容性校验
+- ✅ `sync_yara.py` — YARA 通用 webshell 正则 → `webshell-patterns.json`（+4 条）
+  - 解析 YARA `strings`，提取正则类特征（跳过纯字符串字面量），nocase → `(?i)`
+- ✅ `sync_et_open.py` — ET Open 通用流量规则 → `traffic-signatures.json`（+1512 条）
+  - 解析 Suricata `content`/`pcre`，策展 web_server/user_agents/coinminer/exploit_kit/current_events
+- ✅ `sync_sigma.py` — Sigma 通用 Windows 检测规则 → `sysmon-detection-rules.json`（+437 条）
+  - 解析 Sigma `detection`（`|contains`/`|endswith`/`|startswith`/`|re`）转 Python 正则；logsource→event_id 映射；level high/critical + 通用攻击类策展
+- ✅ `traffic_anomaly.py` http 分发补 `sqli`/`rce`/`xss`/`lfi`/`rfi` category 分支（CRS/ET 规则 emit 承载）
 
 ## 🟡 高优先级（近期）
 
-### 规则源扩充
-- [ ] `sync_yara.py` — YARA 通用 webshell 规则（bartblaze/Neo23x0）→ `webshell-patterns.json`
-  - 解析 YARA `strings:` 提取正则/字符串，转 Python re（注意 webshell_scan 用 `MULTILINE|DOTALL`，大小写敏感需自带 `(?i)`）
+### 规则源扩充（国内针对性源）
 - [ ] `sync_webshell_traffic.py` — 国内 webshell 管理工具流量特征 → `traffic-signatures.json`
   - 源：xiecat/wsm、minhangxiaohui/DecodeSomeJSPWebshell、xiaopan233/AntSword-Cryption-WebShell
   - 提取 Behinder/Godzilla/AntSword/Knife 通信特征（UA/URI/参数名/编码模式）
@@ -27,10 +32,6 @@
   - 解析 Go POC，提取 FastJSON/Shiro/Struts2/Spring/WebLogic/泛微/通达/用友 检测特征
 - [ ] `sync_cn_tools.py` — 国内红队/穿透工具流量 → `traffic-signatures.json`
   - 补充 frp/nps/chisel/stowaway/suo5/reGeorg/gost/fscan/goby/xray/nuclei/yakit/viper 特征
-- [ ] `sync_sigma.py` — Sigma 通用 Windows 检测规则 → `sysmon-detection-rules.json`
-  - 解析 Sigma detection 语法（`|contains`/`|endswith`/`|re`）转 Python 正则；按 level high + ATT&CK tag 策展
-- [ ] `sync_et_open.py` — ET Open 通用流量规则 → `traffic-signatures.json`
-  - 解析 Suricata `pcre:`/`content:`，按 msg 分类
 
 ### 消费端补强
 - [ ] `traffic_anomaly.py` flow 分发补 `payload_first_bytes` case

@@ -11,9 +11,12 @@
 
 ## 已实现
 
-| 同步器 | 源 | 目标 JSON | 说明 |
-|---|---|---|---|
-| `sync_owasp_crs.py` | [OWASP CRS](https://github.com/coreruleset/coreruleset) | `data/traffic-signatures.json` (http view) | 通用 Web 攻击正则（SQLi/RCE/XSS/LFI/RFI），解析 SecRule `@rx` |
+| 同步器 | 源 | 目标 JSON | 条数 | 说明 |
+|---|---|---|---|---|
+| `sync_owasp_crs.py` | [OWASP CRS](https://github.com/coreruleset/coreruleset) | `data/traffic-signatures.json` (http view) | +149 | 通用 Web 攻击正则（SQLi/RCE/XSS/LFI/RFI），解析 SecRule `@rx` |
+| `sync_yara.py` | [bartblaze/Yara-rules](https://github.com/bartblaze/Yara-rules) | `data/webshell-patterns.json` | +4 | 通用 webshell 正则特征（eval/base64），解析 YARA `strings` |
+| `sync_et_open.py` | [ET Open](https://rules.emergingthreats.net/) (Proofpoint) | `data/traffic-signatures.json` (http view) | +1512 | 通用扫描器 UA/webshell 标题/挖矿/exploit kit，解析 Suricata `content`/`pcre` |
+| `sync_sigma.py` | [SigmaHQ/sigma](https://github.com/SigmaHQ/sigma) | `data/sysmon-detection-rules.json` | +437 | 通用 Windows 持久化/提权/横向/Sysmon，解析 Sigma `detection`（`|contains`/`|endswith`/`|re`） |
 
 ## 用法
 
@@ -27,12 +30,9 @@ python3.11 scripts/feeds/sync_owasp_crs.py --dry-run
 
 ## 待实现（见项目根 todo.md）
 
-- `sync_yara.py` — YARA 通用 webshell 规则 → `data/webshell-patterns.json`
 - `sync_webshell_traffic.py` — 国内 webshell 管理工具流量特征（Behinder/Godzilla/AntSword）→ `data/traffic-signatures.json`
 - `sync_kunpeng.py` — 国内漏洞 POC（FastJSON/Shiro/Struts2/泛微/通达/用友）→ `data/tool-signatures.json`
 - `sync_cn_tools.py` — 国内红队/穿透工具流量（frp/nps/chisel/suo5 等）→ `data/traffic-signatures.json`
-- `sync_sigma.py` — Sigma 通用 Windows 检测规则 → `data/sysmon-detection-rules.json`
-- `sync_et_open.py` — ET Open 通用流量规则 → `data/traffic-signatures.json`
 
 ## 依赖
 

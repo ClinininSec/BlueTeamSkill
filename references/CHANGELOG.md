@@ -15,8 +15,13 @@
   - `traffic_anomaly.py` tls 分发补 `ja3`/`ja3s`/`cipher` case —— `SIG-TRAF-087+` JA3 签名 + 硬编码 `KNOWN_JA3_C2` dict 真正生效（之前 tls 分发只认 sni/cert_cn/cert_issuer）
   - `pcap_parser.py` view_tls 补 `tls.handshake.ja3`/`ja3s` 输出 —— 之前 pcap_parser 根本不输出 ja3，导致整个 JA3 检测链路是死的
 - **规则源同步框架** `scripts/feeds/`：
-  - `sync_owasp_crs.py` —— OWASP CRS 通用 Web 攻击正则 → `traffic-signatures.json`（http view）；状态机解析 SecRule `@rx`，正确处理转义双引号 + 续行，Python re 兼容性校验，幂等合并去重
-  - `README.md` —— feeds 设计原则（离线优先/红线/幂等）+ 待实现同步器清单
+  - `sync_owasp_crs.py` —— OWASP CRS 通用 Web 攻击正则 → `traffic-signatures.json`（+149 条，http view）；状态机解析 SecRule `@rx`，正确处理转义双引号 + 续行，Python re 兼容性校验，幂等合并去重
+  - `sync_yara.py` —— YARA 通用 webshell 正则 → `webshell-patterns.json`（+4 条）；解析 YARA `strings`，提取正则类特征，nocase → `(?i)`
+  - `sync_et_open.py` —— ET Open 通用流量规则 → `traffic-signatures.json`（+1512 条，http view）；解析 Suricata `content`/`pcre`，策展 web_server/user_agents/coinminer/exploit_kit/current_events
+  - `sync_sigma.py` —— Sigma 通用 Windows 检测规则 → `sysmon-detection-rules.json`（+437 条）；解析 Sigma `detection`（`|contains`/`|endswith`/`|startswith`/`|re`）转 Python 正则；logsource→event_id 映射；level high/critical 策展
+  - `README.md` —— feeds 设计原则（离线优先/红线/幂等）+ 已实现/待实现同步器清单
+  - 所有同步器支持 `--local` 指定本地已下载源目录（跳过克隆），`--dry-run` 预览
+- **消费端补强** `traffic_anomaly.py` http 分发补 `sqli`/`rce`/`xss`/`lfi`/`rfi` category 分支 —— CRS/ET 规则命中后承载 emit（R-TRAF-003 SQLi / R-TRAF-004 RCE / R-TRAF-002 XSS·LFI·RFI）
 - **路线图** `todo.md`（项目根）—— 阶段 0 已完成项 + 6 个待实现规则源 + 国产设备扩充 + 国内威胁情报 + MITRE ATT&CK 映射 + MCP 工具化
 
 **设计决策**：① 激活死规则优先于灌新规则（否则灌进去不告警）；② 规则源同步器构建期离线拉取，运行时零外发，兼容离线优先；③ 国外通用源（OWASP CRS/Sigma/ET Open/YARA）+ 国内针对性源（kunpeng/wsm 等）结合；④ 红线贯穿——同步器只提取检测特征，不输出可复现 PoC。

@@ -141,44 +141,62 @@ def is_valid_python_re(pattern: str) -> bool:
         return False
 
 
-def convert() -> list[dict]:
-    """克隆 CRS → 提取正则 → 转项目 traffic-signatures 条目。返回新条目列表。"""
-    with tempfile.TemporaryDirectory(prefix="crs-sync-") as td:
-        clone_dir = Path(td) / "crs"
-        if not shallow_clone(clone_dir):
-            log("克隆失败，终止")
-            return []
-        rules_dir = clone_dir / "rules"
-        if not rules_dir.is_dir():
-            log(f"rules/ 目录不存在: {rules_dir}")
-            return []
+def convert(local_dir: Path | None = None) -> list[dict]:
+    """克隆 CRS（或用 --local 指定的本地目录）→ 提取正则 → 转条目。
 
-        entries: list[dict] = []
-        seq = 1
-        for fname, (category, field) in FILE_CATEGORY.items():
-            fpath = rules_dir / fname
-            if not fpath.is_file():
-                log(f"跳过（文件不存在）: {fname}")
+    local_dir 给定时跳过克隆，直接用该目录下的 rules/（兼容解压后的
+    coreruleset-main/rules/ 或直接 rules/）。
+    """
+    if local_dir is not None:
+        # 兼容两种布局：<local>/rules/ 或 <local>/coreruleset-main/rules/
+        candidates = [local_dir / "rules", local_dir / "coreruleset-main" / "rules",
+                      local_dir]
+        rules_dir = next((c for c in candidates if c.is_dir()), None)
+        if rules_dir is None:
+            log(f"--local 目录下找不到 rules/：{local_dir}")
+            return []
+        log(f"使用本地 CRS rules/：{rules_dir}")
+    else:
+        with tempfile.TemporaryDirectory(prefix="crs-sync-") as td:
+            clone_dir = Path(td) / "crs"
+            if not shallow_clone(clone_dir):
+                log("克隆失败，终止")
+                return []
+            return _extract_from_rules_dir(clone_dir / "rules")
+    return _extract_from_rules_dir(rules_dir)
+
+
+def _extract_from_rules_dir(rules_dir: Path) -> list[dict]:
+    """从 CRS rules/ 目录提取正则并转条目。"""
+    if not rules_dir.is_dir():
+        log(f"rules/ 目录不存在: {rules_dir}")
+        return []
+    entries: list[dict] = []
+    seq = 1
+    for fname, (category, field) in FILE_CATEGORY.items():
+        fpath = rules_dir / fname
+        if not fpath.is_file():
+            log(f"跳过（文件不存在）: {fname}")
+            continue
+        n_file = 0
+        for pattern in extract_rx_from_file(fpath):
+            if not is_valid_python_re(pattern):
                 continue
-            n_file = 0
-            for pattern in extract_rx_from_file(fpath):
-                if not is_valid_python_re(pattern):
-                    continue
-                entries.append({
-                    "id": f"{ID_PREFIX}-{seq:03d}",
-                    "category": category,
-                    "view": "http",
-                    "field": field,
-                    "pattern": pattern,
-                    "tool": f"owasp-crs-{fname.split('-')[1].lower()}",
-                    "severity": CATEGORY_SEVERITY.get(category, "medium"),
-                    "description": f"OWASP CRS {fname.split('-')[1]} 通用 {category.upper()} 检测正则",
-                    "false_positive": "CRS 通用正则，护网期建议结合 URI 路径与状态码二次确认",
-                })
-                seq += 1
-                n_file += 1
-            log(f"{fname}: 提取 {n_file} 条有效正则")
-        return entries
+            entries.append({
+                "id": f"{ID_PREFIX}-{seq:03d}",
+                "category": category,
+                "view": "http",
+                "field": field,
+                "pattern": pattern,
+                "tool": f"owasp-crs-{fname.split('-')[1].lower()}",
+                "severity": CATEGORY_SEVERITY.get(category, "medium"),
+                "description": f"OWASP CRS {fname.split('-')[1]} 通用 {category.upper()} 检测正则",
+                "false_positive": "CRS 通用正则，护网期建议结合 URI 路径与状态码二次确认",
+            })
+            seq += 1
+            n_file += 1
+        log(f"{fname}: 提取 {n_file} 条有效正则")
+    return entries
 
 
 def merge_into_output(entries: list[dict], output: Path, dry_run: bool) -> int:
@@ -208,10 +226,16 @@ def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="OWASP CRS → traffic-signatures.json 同步器")
     p.add_argument("--output", default=str(DEFAULT_OUTPUT),
                    help=f"输出 JSON 路径（默认 {DEFAULT_OUTPUT}）")
+    p.add_argument("--local", default=None,
+                   help="本地 CRS 目录（含 rules/ 或 coreruleset-main/rules/），跳过克隆")
     p.add_argument("--dry-run", action="store_true", help="只打印不写文件")
     args = p.parse_args(argv)
 
-    entries = convert()
+    local_dir = Path(args.local) if args.local else None
+    if local_dir and not local_dir.is_dir():
+        log(f"--local 目录不存在: {local_dir}")
+        return 1
+    entries = convert(local_dir=local_dir)
     log(f"共提取 {len(entries)} 条候选条目")
     n = merge_into_output(entries, Path(args.output), args.dry_run)
     return 0 if n >= 0 else 1

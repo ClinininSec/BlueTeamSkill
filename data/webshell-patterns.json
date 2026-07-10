@@ -1,44 +1,328 @@
 {
   "version": "0.1",
-  "updated_at": "2026-06-30",
-  "total": 36,
+  "updated_at": "2026-07-10",
+  "total": 40,
   "notes": "Patterns are detection signatures only; never used as payloads. Severity: high = strong webshell indicator; medium = suspicious in combination; low = needs cross-evidence. Tested against common false-positive corpora (CMS hooks, framework eval-based config loaders).",
   "rules": [
-    {"id": "SIG-WS-001", "lang": "php", "pattern": "(?i)<\\?php\\s+@?eval\\s*\\(\\s*\\$_(POST|GET|REQUEST|COOKIE|SERVER)", "severity": "high", "description": "PHP one-liner shell: eval over superglobal", "false_positive": "almost never legitimate"},
-    {"id": "SIG-WS-002", "lang": "php", "pattern": "(?i)assert\\s*\\(\\s*\\$_(POST|GET|REQUEST|COOKIE)", "severity": "high", "description": "PHP assert-based shell", "false_positive": "very low"},
-    {"id": "SIG-WS-003", "lang": "php", "pattern": "(?i)\\$\\{?_(POST|GET|REQUEST|COOKIE)\\}?\\s*\\[\\s*['\"]?[a-z0-9_]+['\"]?\\s*\\]\\s*\\(", "severity": "high", "description": "PHP dynamic function call from superglobal", "false_positive": "rare"},
-    {"id": "SIG-WS-004", "lang": "php", "pattern": "(?i)preg_replace\\s*\\(\\s*['\"][^'\"]+/e['\"]", "severity": "high", "description": "PHP preg_replace /e modifier (legacy code-exec)", "false_positive": "deprecated since PHP 5.5, rare in modern code"},
-    {"id": "SIG-WS-005", "lang": "php", "pattern": "(?i)create_function\\s*\\(", "severity": "medium", "description": "PHP create_function (deprecated, often shell)", "false_positive": "some legacy libraries"},
-    {"id": "SIG-WS-006", "lang": "php", "pattern": "(?i)\\b(system|exec|passthru|shell_exec|popen|proc_open)\\s*\\(\\s*\\$_(POST|GET|REQUEST|COOKIE)", "severity": "high", "description": "PHP system call with user-controlled input", "false_positive": "rare"},
-    {"id": "SIG-WS-007", "lang": "php", "pattern": "(?i)base64_decode\\s*\\(\\s*\\$_(POST|GET|REQUEST|COOKIE)", "severity": "medium", "description": "PHP base64 decode of user input (common in encoded shells)", "false_positive": "some legit APIs"},
-    {"id": "SIG-WS-008", "lang": "php", "pattern": "(?i)gzinflate\\s*\\(\\s*base64_decode", "severity": "medium", "description": "PHP layered gzinflate(base64_decode(...)) wrapper, classic obfuscated shell", "false_positive": "low"},
-    {"id": "SIG-WS-009", "lang": "php", "pattern": "(?i)str_rot13\\s*\\(\\s*['\"]?[a-z0-9+/=]{20,}", "severity": "low", "description": "PHP rot13 obfuscation", "false_positive": "occasional in CTF/training"},
-    {"id": "SIG-WS-010", "lang": "php", "pattern": "(?i)@\\$[a-z_][a-z0-9_]*\\s*=\\s*\\$_(POST|GET|REQUEST|COOKIE)\\[", "severity": "low", "description": "PHP silenced assignment from superglobal (shell decoder pattern)", "false_positive": "medium"},
-    {"id": "SIG-WS-011", "lang": "php", "pattern": "(?i)\\bphpinfo\\s*\\(\\s*\\)", "severity": "low", "description": "PHP phpinfo() call (often in test/debug pages or shells)", "false_positive": "high"},
-    {"id": "SIG-WS-012", "lang": "php", "pattern": "(?i)move_uploaded_file\\s*\\([^,]+,\\s*\\$_(POST|GET|REQUEST)", "severity": "medium", "description": "PHP upload with attacker-controlled destination", "false_positive": "medium (some legit but rare)"},
-    {"id": "SIG-WS-013", "lang": "php", "pattern": "(?i)file_put_contents\\s*\\(\\s*\\$_(POST|GET|REQUEST)[^,]+,\\s*\\$_", "severity": "medium", "description": "PHP arbitrary file write from request", "false_positive": "low"},
-    {"id": "SIG-WS-014", "lang": "jsp", "pattern": "(?i)Runtime\\.getRuntime\\s*\\(\\s*\\)\\.exec\\s*\\(\\s*request\\.getParameter", "severity": "high", "description": "JSP Runtime.exec with request parameter", "false_positive": "rare"},
-    {"id": "SIG-WS-015", "lang": "jsp", "pattern": "(?i)<%@\\s*page[^%]*import\\s*=\\s*\"java\\.lang\\.(Runtime|ProcessBuilder)", "severity": "medium", "description": "JSP imports Runtime/ProcessBuilder (common in JSP shells)", "false_positive": "medium"},
-    {"id": "SIG-WS-016", "lang": "jsp", "pattern": "(?i)ProcessBuilder\\s*\\([^)]*request\\.", "severity": "high", "description": "JSP ProcessBuilder taking request input", "false_positive": "rare"},
-    {"id": "SIG-WS-017", "lang": "jsp", "pattern": "(?i)Class\\.forName\\s*\\(\\s*\"[^\"]+\"\\s*\\)\\.newInstance\\s*\\(\\s*\\)", "severity": "low", "description": "JSP dynamic class loading (used in JSP loader shells)", "false_positive": "high"},
-    {"id": "SIG-WS-018", "lang": "jsp", "pattern": "(?i)new\\s+sun\\.misc\\.BASE64Decoder\\s*\\(\\s*\\)", "severity": "low", "description": "JSP legacy BASE64 decoder usage (loader-shell pattern)", "false_positive": "medium"},
-    {"id": "SIG-WS-019", "lang": "jsp", "pattern": "(?i)defineClass\\s*\\([^)]*", "severity": "medium", "description": "JSP/Java defineClass (memory-resident shell loader)", "false_positive": "medium"},
-    {"id": "SIG-WS-020", "lang": "jsp", "pattern": "(?i)<%\\s*if\\s*\\(\\s*request\\.getParameter\\s*\\(\\s*\"(cmd|pwd|pass)\"", "severity": "high", "description": "JSP shell password gate", "false_positive": "rare"},
-    {"id": "SIG-WS-021", "lang": "jsp", "pattern": "(?i)getRuntime\\(\\)\\.exec", "severity": "medium", "description": "JSP/Java Runtime.exec usage (general)", "false_positive": "medium"},
-    {"id": "SIG-WS-022", "lang": "aspx", "pattern": "(?i)Request\\.(Form|QueryString|Item)\\s*\\[\\s*\"[^\"]+\"\\s*\\]\\s*\\.ToString\\(\\)", "severity": "low", "description": "ASPX request param read (suspicious in shell context)", "false_positive": "high"},
-    {"id": "SIG-WS-023", "lang": "aspx", "pattern": "(?i)System\\.Diagnostics\\.Process\\.Start\\s*\\(\\s*Request\\.", "severity": "high", "description": "ASPX Process.Start with request input", "false_positive": "rare"},
-    {"id": "SIG-WS-024", "lang": "aspx", "pattern": "(?i)Assembly\\.Load\\s*\\(\\s*Convert\\.FromBase64String", "severity": "medium", "description": "ASPX in-memory assembly load from base64 (loader shell)", "false_positive": "low"},
-    {"id": "SIG-WS-025", "lang": "aspx", "pattern": "(?i)\\bcmd\\.exe\\b|\\bpowershell\\.exe\\b", "severity": "low", "description": "ASPX contains shell binary names (suspicious)", "false_positive": "high"},
-    {"id": "SIG-WS-026", "lang": "aspx", "pattern": "(?i)<%@\\s*Page[^%]*Language=\"(JScript|VB|C#)\"[^%]*Inherits=\"System\\.Web\\.UI\\.Page\"", "severity": "low", "description": "ASPX raw inline page header (legit but suspicious if standalone)", "false_positive": "high"},
-    {"id": "SIG-WS-027", "lang": "aspx", "pattern": "(?i)WebShell|chopper", "severity": "medium", "description": "ASPX explicit webshell strings", "false_positive": "low"},
-    {"id": "SIG-WS-028", "lang": "generic", "pattern": "(?i)\\beval\\s*\\(\\s*base64_decode", "severity": "high", "description": "Generic eval(base64_decode(...)) pattern", "false_positive": "rare"},
-    {"id": "SIG-WS-029", "lang": "generic", "pattern": "(?i)password\\s*=\\s*['\"](rebeyond|admin|pass|root|godzilla|behinder)['\"]", "severity": "medium", "description": "Hardcoded shell password commonly seen in red-team tools", "false_positive": "medium"},
-    {"id": "SIG-WS-030", "lang": "generic", "pattern": "(?i)key\\s*=\\s*['\"](e45e329feb5d925b)['\"]?", "severity": "high", "description": "Godzilla default AES key prefix", "false_positive": "very low"},
-    {"id": "SIG-WS-031", "lang": "generic", "pattern": "(?i)pass\\s*=\\s*['\"]?rebeyond['\"]?", "severity": "high", "description": "Behinder (ice-scorpion) default password", "false_positive": "very low"},
-    {"id": "SIG-WS-032", "lang": "php", "pattern": "(?i)\\$\\w+\\s*=\\s*[\"']\\\\x[0-9a-f]{2}", "severity": "medium", "description": "PHP hex-escaped string assignment (encoded shell loader)", "false_positive": "medium"},
-    {"id": "SIG-WS-033", "lang": "php", "pattern": "(?i)chr\\s*\\(\\s*\\d+\\s*\\)\\s*\\.\\s*chr\\s*\\(", "severity": "medium", "description": "PHP chr()-based string construction (obfuscation)", "false_positive": "medium"},
-    {"id": "SIG-WS-034", "lang": "generic", "pattern": "(?i)\\b(union\\s+select|information_schema)\\b", "severity": "low", "description": "SQL keywords in web file (suspicious if not a DB layer)", "false_positive": "high"},
-    {"id": "SIG-WS-035", "lang": "php", "pattern": "(?i)error_reporting\\s*\\(\\s*0\\s*\\)\\s*;\\s*set_time_limit\\s*\\(\\s*0\\s*\\)", "severity": "medium", "description": "PHP error_reporting(0)+set_time_limit(0) opening, classic shell prologue", "false_positive": "low"},
-    {"id": "SIG-WS-036", "lang": "generic", "pattern": "(?i)WSO\\s+\\d+\\.\\d+|c99shell|r57shell|b374k", "severity": "high", "description": "Named public webshell banner strings", "false_positive": "very low"}
+    {
+      "id": "SIG-WS-001",
+      "lang": "php",
+      "pattern": "(?i)<\\?php\\s+@?eval\\s*\\(\\s*\\$_(POST|GET|REQUEST|COOKIE|SERVER)",
+      "severity": "high",
+      "description": "PHP one-liner shell: eval over superglobal",
+      "false_positive": "almost never legitimate"
+    },
+    {
+      "id": "SIG-WS-002",
+      "lang": "php",
+      "pattern": "(?i)assert\\s*\\(\\s*\\$_(POST|GET|REQUEST|COOKIE)",
+      "severity": "high",
+      "description": "PHP assert-based shell",
+      "false_positive": "very low"
+    },
+    {
+      "id": "SIG-WS-003",
+      "lang": "php",
+      "pattern": "(?i)\\$\\{?_(POST|GET|REQUEST|COOKIE)\\}?\\s*\\[\\s*['\"]?[a-z0-9_]+['\"]?\\s*\\]\\s*\\(",
+      "severity": "high",
+      "description": "PHP dynamic function call from superglobal",
+      "false_positive": "rare"
+    },
+    {
+      "id": "SIG-WS-004",
+      "lang": "php",
+      "pattern": "(?i)preg_replace\\s*\\(\\s*['\"][^'\"]+/e['\"]",
+      "severity": "high",
+      "description": "PHP preg_replace /e modifier (legacy code-exec)",
+      "false_positive": "deprecated since PHP 5.5, rare in modern code"
+    },
+    {
+      "id": "SIG-WS-005",
+      "lang": "php",
+      "pattern": "(?i)create_function\\s*\\(",
+      "severity": "medium",
+      "description": "PHP create_function (deprecated, often shell)",
+      "false_positive": "some legacy libraries"
+    },
+    {
+      "id": "SIG-WS-006",
+      "lang": "php",
+      "pattern": "(?i)\\b(system|exec|passthru|shell_exec|popen|proc_open)\\s*\\(\\s*\\$_(POST|GET|REQUEST|COOKIE)",
+      "severity": "high",
+      "description": "PHP system call with user-controlled input",
+      "false_positive": "rare"
+    },
+    {
+      "id": "SIG-WS-007",
+      "lang": "php",
+      "pattern": "(?i)base64_decode\\s*\\(\\s*\\$_(POST|GET|REQUEST|COOKIE)",
+      "severity": "medium",
+      "description": "PHP base64 decode of user input (common in encoded shells)",
+      "false_positive": "some legit APIs"
+    },
+    {
+      "id": "SIG-WS-008",
+      "lang": "php",
+      "pattern": "(?i)gzinflate\\s*\\(\\s*base64_decode",
+      "severity": "medium",
+      "description": "PHP layered gzinflate(base64_decode(...)) wrapper, classic obfuscated shell",
+      "false_positive": "low"
+    },
+    {
+      "id": "SIG-WS-009",
+      "lang": "php",
+      "pattern": "(?i)str_rot13\\s*\\(\\s*['\"]?[a-z0-9+/=]{20,}",
+      "severity": "low",
+      "description": "PHP rot13 obfuscation",
+      "false_positive": "occasional in CTF/training"
+    },
+    {
+      "id": "SIG-WS-010",
+      "lang": "php",
+      "pattern": "(?i)@\\$[a-z_][a-z0-9_]*\\s*=\\s*\\$_(POST|GET|REQUEST|COOKIE)\\[",
+      "severity": "low",
+      "description": "PHP silenced assignment from superglobal (shell decoder pattern)",
+      "false_positive": "medium"
+    },
+    {
+      "id": "SIG-WS-011",
+      "lang": "php",
+      "pattern": "(?i)\\bphpinfo\\s*\\(\\s*\\)",
+      "severity": "low",
+      "description": "PHP phpinfo() call (often in test/debug pages or shells)",
+      "false_positive": "high"
+    },
+    {
+      "id": "SIG-WS-012",
+      "lang": "php",
+      "pattern": "(?i)move_uploaded_file\\s*\\([^,]+,\\s*\\$_(POST|GET|REQUEST)",
+      "severity": "medium",
+      "description": "PHP upload with attacker-controlled destination",
+      "false_positive": "medium (some legit but rare)"
+    },
+    {
+      "id": "SIG-WS-013",
+      "lang": "php",
+      "pattern": "(?i)file_put_contents\\s*\\(\\s*\\$_(POST|GET|REQUEST)[^,]+,\\s*\\$_",
+      "severity": "medium",
+      "description": "PHP arbitrary file write from request",
+      "false_positive": "low"
+    },
+    {
+      "id": "SIG-WS-014",
+      "lang": "jsp",
+      "pattern": "(?i)Runtime\\.getRuntime\\s*\\(\\s*\\)\\.exec\\s*\\(\\s*request\\.getParameter",
+      "severity": "high",
+      "description": "JSP Runtime.exec with request parameter",
+      "false_positive": "rare"
+    },
+    {
+      "id": "SIG-WS-015",
+      "lang": "jsp",
+      "pattern": "(?i)<%@\\s*page[^%]*import\\s*=\\s*\"java\\.lang\\.(Runtime|ProcessBuilder)",
+      "severity": "medium",
+      "description": "JSP imports Runtime/ProcessBuilder (common in JSP shells)",
+      "false_positive": "medium"
+    },
+    {
+      "id": "SIG-WS-016",
+      "lang": "jsp",
+      "pattern": "(?i)ProcessBuilder\\s*\\([^)]*request\\.",
+      "severity": "high",
+      "description": "JSP ProcessBuilder taking request input",
+      "false_positive": "rare"
+    },
+    {
+      "id": "SIG-WS-017",
+      "lang": "jsp",
+      "pattern": "(?i)Class\\.forName\\s*\\(\\s*\"[^\"]+\"\\s*\\)\\.newInstance\\s*\\(\\s*\\)",
+      "severity": "low",
+      "description": "JSP dynamic class loading (used in JSP loader shells)",
+      "false_positive": "high"
+    },
+    {
+      "id": "SIG-WS-018",
+      "lang": "jsp",
+      "pattern": "(?i)new\\s+sun\\.misc\\.BASE64Decoder\\s*\\(\\s*\\)",
+      "severity": "low",
+      "description": "JSP legacy BASE64 decoder usage (loader-shell pattern)",
+      "false_positive": "medium"
+    },
+    {
+      "id": "SIG-WS-019",
+      "lang": "jsp",
+      "pattern": "(?i)defineClass\\s*\\([^)]*",
+      "severity": "medium",
+      "description": "JSP/Java defineClass (memory-resident shell loader)",
+      "false_positive": "medium"
+    },
+    {
+      "id": "SIG-WS-020",
+      "lang": "jsp",
+      "pattern": "(?i)<%\\s*if\\s*\\(\\s*request\\.getParameter\\s*\\(\\s*\"(cmd|pwd|pass)\"",
+      "severity": "high",
+      "description": "JSP shell password gate",
+      "false_positive": "rare"
+    },
+    {
+      "id": "SIG-WS-021",
+      "lang": "jsp",
+      "pattern": "(?i)getRuntime\\(\\)\\.exec",
+      "severity": "medium",
+      "description": "JSP/Java Runtime.exec usage (general)",
+      "false_positive": "medium"
+    },
+    {
+      "id": "SIG-WS-022",
+      "lang": "aspx",
+      "pattern": "(?i)Request\\.(Form|QueryString|Item)\\s*\\[\\s*\"[^\"]+\"\\s*\\]\\s*\\.ToString\\(\\)",
+      "severity": "low",
+      "description": "ASPX request param read (suspicious in shell context)",
+      "false_positive": "high"
+    },
+    {
+      "id": "SIG-WS-023",
+      "lang": "aspx",
+      "pattern": "(?i)System\\.Diagnostics\\.Process\\.Start\\s*\\(\\s*Request\\.",
+      "severity": "high",
+      "description": "ASPX Process.Start with request input",
+      "false_positive": "rare"
+    },
+    {
+      "id": "SIG-WS-024",
+      "lang": "aspx",
+      "pattern": "(?i)Assembly\\.Load\\s*\\(\\s*Convert\\.FromBase64String",
+      "severity": "medium",
+      "description": "ASPX in-memory assembly load from base64 (loader shell)",
+      "false_positive": "low"
+    },
+    {
+      "id": "SIG-WS-025",
+      "lang": "aspx",
+      "pattern": "(?i)\\bcmd\\.exe\\b|\\bpowershell\\.exe\\b",
+      "severity": "low",
+      "description": "ASPX contains shell binary names (suspicious)",
+      "false_positive": "high"
+    },
+    {
+      "id": "SIG-WS-026",
+      "lang": "aspx",
+      "pattern": "(?i)<%@\\s*Page[^%]*Language=\"(JScript|VB|C#)\"[^%]*Inherits=\"System\\.Web\\.UI\\.Page\"",
+      "severity": "low",
+      "description": "ASPX raw inline page header (legit but suspicious if standalone)",
+      "false_positive": "high"
+    },
+    {
+      "id": "SIG-WS-027",
+      "lang": "aspx",
+      "pattern": "(?i)WebShell|chopper",
+      "severity": "medium",
+      "description": "ASPX explicit webshell strings",
+      "false_positive": "low"
+    },
+    {
+      "id": "SIG-WS-028",
+      "lang": "generic",
+      "pattern": "(?i)\\beval\\s*\\(\\s*base64_decode",
+      "severity": "high",
+      "description": "Generic eval(base64_decode(...)) pattern",
+      "false_positive": "rare"
+    },
+    {
+      "id": "SIG-WS-029",
+      "lang": "generic",
+      "pattern": "(?i)password\\s*=\\s*['\"](rebeyond|admin|pass|root|godzilla|behinder)['\"]",
+      "severity": "medium",
+      "description": "Hardcoded shell password commonly seen in red-team tools",
+      "false_positive": "medium"
+    },
+    {
+      "id": "SIG-WS-030",
+      "lang": "generic",
+      "pattern": "(?i)key\\s*=\\s*['\"](e45e329feb5d925b)['\"]?",
+      "severity": "high",
+      "description": "Godzilla default AES key prefix",
+      "false_positive": "very low"
+    },
+    {
+      "id": "SIG-WS-031",
+      "lang": "generic",
+      "pattern": "(?i)pass\\s*=\\s*['\"]?rebeyond['\"]?",
+      "severity": "high",
+      "description": "Behinder (ice-scorpion) default password",
+      "false_positive": "very low"
+    },
+    {
+      "id": "SIG-WS-032",
+      "lang": "php",
+      "pattern": "(?i)\\$\\w+\\s*=\\s*[\"']\\\\x[0-9a-f]{2}",
+      "severity": "medium",
+      "description": "PHP hex-escaped string assignment (encoded shell loader)",
+      "false_positive": "medium"
+    },
+    {
+      "id": "SIG-WS-033",
+      "lang": "php",
+      "pattern": "(?i)chr\\s*\\(\\s*\\d+\\s*\\)\\s*\\.\\s*chr\\s*\\(",
+      "severity": "medium",
+      "description": "PHP chr()-based string construction (obfuscation)",
+      "false_positive": "medium"
+    },
+    {
+      "id": "SIG-WS-034",
+      "lang": "generic",
+      "pattern": "(?i)\\b(union\\s+select|information_schema)\\b",
+      "severity": "low",
+      "description": "SQL keywords in web file (suspicious if not a DB layer)",
+      "false_positive": "high"
+    },
+    {
+      "id": "SIG-WS-035",
+      "lang": "php",
+      "pattern": "(?i)error_reporting\\s*\\(\\s*0\\s*\\)\\s*;\\s*set_time_limit\\s*\\(\\s*0\\s*\\)",
+      "severity": "medium",
+      "description": "PHP error_reporting(0)+set_time_limit(0) opening, classic shell prologue",
+      "false_positive": "low"
+    },
+    {
+      "id": "SIG-WS-036",
+      "lang": "generic",
+      "pattern": "(?i)WSO\\s+\\d+\\.\\d+|c99shell|r57shell|b374k",
+      "severity": "high",
+      "description": "Named public webshell banner strings",
+      "false_positive": "very low"
+    },
+    {
+      "id": "SIG-WS-YARA-001",
+      "lang": "generic",
+      "pattern": "(?i)<\\?php[ -~]{30,}",
+      "severity": "high",
+      "description": "YARA Webshell_in_image.s2: Identifies a webshell or backdoor in image files.",
+      "false_positive": "YARA 通用 webshell 正则特征，需结合文件类型"
+    },
+    {
+      "id": "SIG-WS-YARA-002",
+      "lang": "generic",
+      "pattern": "(?i)eval\\([ -~]{30,}",
+      "severity": "high",
+      "description": "YARA Webshell_in_image.s3: Identifies a webshell or backdoor in image files.",
+      "false_positive": "YARA 通用 webshell 正则特征，需结合文件类型"
+    },
+    {
+      "id": "SIG-WS-YARA-003",
+      "lang": "generic",
+      "pattern": "(?i)<eval[ -~]{30,}",
+      "severity": "high",
+      "description": "YARA Webshell_in_image.s4: Identifies a webshell or backdoor in image files.",
+      "false_positive": "YARA 通用 webshell 正则特征，需结合文件类型"
+    },
+    {
+      "id": "SIG-WS-YARA-004",
+      "lang": "generic",
+      "pattern": "(?i)<%eval[ -~]{30,}",
+      "severity": "high",
+      "description": "YARA Webshell_in_image.s5: Identifies a webshell or backdoor in image files.",
+      "false_positive": "YARA 通用 webshell 正则特征，需结合文件类型"
+    }
   ]
 }

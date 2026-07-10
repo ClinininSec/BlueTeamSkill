@@ -1161,6 +1161,19 @@ def detect(records: Iterator[dict], sigs: list[dict]) -> list[dict]:
                     elif cat == "exfil":
                         emit(findings, "R-TRAF-010", rec,
                              {"sig_id": s.get("id"), "tool": s.get("tool")})
+                    elif cat == "sqli":
+                        emit(findings, "R-TRAF-003", rec,
+                             {"sig_id": s.get("id"), "tool": s.get("tool"),
+                              "matched_field": fld})
+                    elif cat == "rce":
+                        emit(findings, "R-TRAF-004", rec,
+                             {"sig_id": s.get("id"), "tool": s.get("tool"),
+                              "matched_field": fld})
+                    elif cat in ("xss", "lfi", "rfi"):
+                        # CRS 通用 Web 攻击（XSS/LFI/RFI）归入 R-TRAF-002 web 攻击探测
+                        emit(findings, "R-TRAF-002", rec,
+                             {"sig_id": s.get("id"), "tool": s.get("tool"),
+                              "attack_type": cat, "matched_field": fld})
 
             # R-TRAF-002 sensitive path
             if uri and SENSITIVE_PATH_RX.search(uri):
