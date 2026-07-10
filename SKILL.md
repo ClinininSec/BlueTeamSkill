@@ -59,9 +59,12 @@ model: sonnet
 | 规则命名分层 | `references/rule-id-namespaces.md` | 所有 `R-*` / `PLB-*` / `SIG-*` / `CHECK-*` 前缀的命名空间总表 |
 | 版本历史 | `references/CHANGELOG.md` | v0.1 → v0.4-M1 的能力演化 |
 | 术语表 | `references/glossary.md` | 蓝队 / 红队 / 监管侧术语映射 |
-| 跨规则关联 agent | `agents/log-analyzer.md` | audit 模式跨源关联分析 |
-| 告警分诊 agent | `agents/alert-triage.md` | monitor 模式 P0-P3 分级 + 误报判定 |
-| IR 调查 agent | `agents/ir-investigator.md` | ir 模式攻击链还原 |
+| 跨规则关联 agent | `agents/log-analyzer.md` | audit 模式跨源关联分析（检查点 B 决策） |
+| 告警分诊 agent | `agents/alert-triage.md` | monitor 模式 P0-P3 分级 + 误报判定（检查点 B 决策） |
+| IR 调查 agent | `agents/ir-investigator.md` | ir 模式攻击链还原（检查点 B 决策） |
+| 流量研判 agent | `agents/traffic-analyst.md` | traffic 模式跨视图关联 + 误报研判（检查点 B 决策） |
+| 检查点审核 agent | `agents/checkpoint-reviewer.md` | 横向审核脚本输出合理性（检查点 A 审核） |
+| 结论验证 agent | `agents/verdict-validator.md` | 横向验证终报 verdict 证据闭环（检查点 C 验证） |
 | 值守日报模板 | `assets/daily-report.md` | monitor 输出格式 |
 | 事件报告模板 | `assets/incident-report.md` | ir 输出格式（12 节） |
 | 值守交接模板 | `assets/handover.md` | 白班 / 夜班交接、周班交接 |
@@ -110,6 +113,22 @@ monitor 命中 P0/P1  →  转 audit 或 traffic 深挖证据  →  确认入侵
 ```
 
 `remote` 与 `ir` 互补：`remote` 负责"从客户机拉数据 / 发命令"，`ir` 负责"分析数据 + 攻击链还原"。两者可独立跑，也可组合。
+
+## LLM 检查点协议（v0.4-M2：每步审核/决策/验证强制介入）
+
+五模式工作流不再是"纯脚本流水线 + LLM 可选研判"，而是**关键节点强制 LLM 介入**的三角色检查点闭环。每个模式在脚本步骤间设 3 个检查点：
+
+| 检查点 | 角色 | 承载 agent | 触发时机 | 输出 |
+|---|---|---|---|---|
+| **A 审核** | Audit | `checkpoint-reviewer` | 非确定性脚本步骤后（检测类）；确定性步骤仅异常时触发 | `{status, issues, false_positive_candidates, decision}` |
+| **B 决策** | Decision | 模式专属（alert-triage / log-analyzer / traffic-analyst / ir-investigator） | A 通过后**必跑** | 分级/关联/攻击链/verdict 建议 |
+| **C 验证** | Verify | `verdict-validator` | 收尾出终报前**必跑** | `{status: confirmed\|rejected, reasons}`；rejected 打回 B |
+
+**确定性步骤放行规则**：归一化（`log_parser`/`vendor_field_mapper`）、脱敏（`desensitize`）、tshark 抠取（`pcap_parser`）、时间线合并（`timeline_build`）正常完成**不调 LLM**，仅在输出 0 记录 / 关键字段全空 / 非 0 退出码 / 体积异常时触发检查点 A。
+
+**大流量批量抽样策略**（避免逐条调 LLM 击穿预算）：P2/P3 仅看聚合统计（按规则/src_ip 分布），P0/P1 抽样 ≤20 条逐条研判；批次 > 500 告警 / > 100k 日志行 / > 100 万包时，决策 agent 先输出关联簇/攻击链，详细 findings 仅展开 top 30。
+
+**闭环**：A→B→C，C rejected 则打回 B 重做（`verdict-validator` 给 fix_hints）。各模式检查点精确落位见 `references/modes/*.md` 与 `references/playbooks/traffic-audit.md`。
 
 ## 输出契约（跨模式一致）
 

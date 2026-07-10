@@ -67,6 +67,8 @@ capinfos <pcap>
 
 **关联 rule_id**：`PLB-TA-001`（pcap 完整性）
 
+> 🔍 **检查点 A（审核）**：本步为确定性步骤，异常时触发 `agents/checkpoint-reviewer` 审核（命中合理性 + 误报剔除）。
+
 ---
 
 ### 步骤 2：归一化抠取
@@ -97,6 +99,8 @@ scripts/pcap_parser.py \
 
 **关联 rule_id**：`PLB-TA-002`（归一化抠取完成）
 
+> 🔍 **检查点 A（审核）**：本步为确定性步骤，异常时（0 记录 / 字段全空）触发 `agents/checkpoint-reviewer` 审核（命中合理性 + 误报剔除）。
+
 ---
 
 ### 步骤 3：IOC 匹配
@@ -123,6 +127,8 @@ scripts/ioc_match.py \
 - hash 命中（webshell / 木马文件） → P0
 
 **关联 rule_id**：`PLB-TA-003`（IOC 匹配完成）
+
+> **🔍 检查点 A（审核）**：本步完成后**必跑** `agents/checkpoint-reviewer`（确定性步骤仅异常时触发）。审核命中合理性 + 误报剔除（P2/P3 聚合统计，P0/P1 抽样逐条）。审核通过进检查点 B。
 
 ---
 
@@ -157,6 +163,25 @@ scripts/traffic_anomaly.py \
 
 **关联 rule_id**：`PLB-TA-004`（异常检测完成）
 
+> **🔍 检查点 A（审核）**：本步完成后**必跑** `agents/checkpoint-reviewer`（确定性步骤仅异常时触发）。审核命中合理性 + 误报剔除（P2/P3 聚合统计，P0/P1 抽样逐条）。审核通过进检查点 B。
+
+---
+
+### 步骤 4.5：流量研判（traffic-analyst）
+
+**做什么**：由 LLM 决策 agent 对前序脚本结果做跨视图关联 + 误报研判 + 盲区发现 + 升级决策，输出流量研判报告。这是 traffic 模式新增的 LLM 决策环节，对标 audit 模式的 log-analyzer。
+
+**输入**：
+- pcap_parser 六视图归一化结果（`/tmp/pcap-normalized.ndjson`）
+- traffic_anomaly findings（`/tmp/anomalies.json`）
+- ioc_match 命中（`/tmp/ioc-hits.json`）
+
+**输出**：流量研判报告（verdict + 攻击链），供步骤 5 横向 / 隧道判定与步骤 6 交付引用。
+
+> **🧭 检查点 B（决策）**：**必跑** `agents/traffic-analyst` 做跨视图关联 + 误报研判 + 盲区发现 + 升级决策，输出流量研判报告（verdict + 攻击链）。
+
+**关联 rule_id**：`PLB-TA-004.5`（流量研判）
+
 ---
 
 ### 步骤 5：横向 & 隧道判定
@@ -189,6 +214,8 @@ tshark -r <pcap> -q -z conv,tcp | awk 'NR>5 && $8 > 3600'
 **关联 rule_id**：`PLB-TA-005`（横向 & 隧道判定）
 
 ---
+
+> **✅ 检查点 C（验证）**：出终报前**必跑** `agents/verdict-validator` 验证 verdict 证据闭环 + 攻击链时间线自洽。rejected 打回检查点 B 重做。
 
 ### 步骤 6：交付
 

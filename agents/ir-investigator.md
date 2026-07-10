@@ -4,7 +4,7 @@
 
 ## 触发上下文
 
-- **由谁触发**：`hvv-defender` skill 在 ir 模式下，主会话完成 `linux_quick_check.sh` 输出解析 + `linux-host-check.md` 逐项核查 + `timeline_build.py` 时间线合并后启动本 agent。
+- **由谁触发**：`hvv-defender` skill 在 ir 模式下，主会话完成 `linux_quick_check.sh` 输出解析 + `linux-host-check.md` 逐项核查 + `timeline_build.py` 时间线合并 + 检查点 A（checkpoint-reviewer 审核通过）后**必跑**本 agent（v0.4-M2 起从"可选触发"改为"必跑"，承担**检查点 B（决策）**角色）。
 - **输入**：
   - 主机采集压缩包解压后的目录（`hvv-collect-<host>-<ts>/`）
   - linux-host-check 14 大类核查结果（CHECK-LIN-X.Y 命中清单）

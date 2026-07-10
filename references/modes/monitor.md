@@ -82,7 +82,7 @@ python3.11 scripts/log_parser.py \
   --output /tmp/hvv-monitor-normalized.jsonl
 ```
 
-**子 agent 介入**：不介入。这一步纯字段映射，无判定。
+**子 agent 介入**：不介入。这一步纯字段映射，无判定。确定性步骤，正常不放行不调 LLM，异常时（0 记录 / 字段全空 / 非 0 退出）触发检查点 A。
 
 **产出**：归一化的 JSONL，每行一条告警 + 标准字段。
 
@@ -129,7 +129,9 @@ python3.11 scripts/ioc_match.py \
 
 **产出**：带 `ioc_match` / `tool_match` 标签的 JSONL，命中条目 `confidence` 自动 +1 档。
 
-### 步骤 3：alert-triage 子 agent 分诊
+> **🔍 检查点 A（审核）**：本步完成后**必跑** `agents/checkpoint-reviewer`（确定性步骤仅异常时触发）。审核命中合理性 + 误报剔除（P2/P3 聚合统计，P0/P1 抽样逐条）。审核通过进检查点 B。
+
+### 步骤 3：alert-triage 子 agent 分诊 —— **必跑**（检查点 B 决策）
 
 **主会话做什么**：把归一化 + 标签化后的告警分批（每批 ≤ 200 条）喂给 `agents/alert-triage` 子 agent，要求按 P0-P3 打分并附理由。
 
@@ -141,13 +143,15 @@ Agent (general-purpose, alert-triage):
   Budget: ≤ 25 工具调用，≤ 15 分钟
 ```
 
-**子 agent 何时介入**：批次 > 100 条 或 内容复杂度高（多种攻击类型混杂）。批次 ≤ 50 条且规则单一时主会话直接判，不开子 agent 省 token。
+**子 agent 何时介入**：**必跑**。alert-triage 是检查点 B 的决策 agent，无论批次大小都必须调用以完成分诊决策。
 
 **产出**：每条告警一个 8 字段 schema 条目，含 `severity` / `category` / `false_positive_prob` / `recommended_action`。
 
 ### 步骤 4：关联升级
 
 **主会话做什么**：跑关联规则引擎对分诊后的列表做升级。
+
+> 注：关联升级结果纳入检查点 B（步骤 3 alert-triage 决策）的输出，作为 verdict 的一部分送入后续检查点 C，不单独再开 LLM 决策。
 
 **关联规则**（最小集，与 `grading.md` 第三节一致）：
 
@@ -185,6 +189,8 @@ python3.11 scripts/desensitize.py \
 > 私网 IP 段由脚本按 RFC1918 自动识别（10/8、172.16/12、192.168/16、100.64/10）。若需保留公网 IP（红队溯源），加 `--keep-public-ip` 或 `--mode relaxed`。
 
 ### 步骤 6：渲染日报 + 待跟进列表
+
+> **✅ 检查点 C（验证）**：出日报前**必跑** `agents/verdict-validator` 验证 verdict 证据闭环 + 待跟进列表无漏标。rejected 打回步骤 3 重做。
 
 **主会话做什么**：用 `assets/daily-report.md` 渲染日报，并单独输出待跟进列表（仅 P0 + P1 + 标记 `lateral_suspect` 的条目）。
 

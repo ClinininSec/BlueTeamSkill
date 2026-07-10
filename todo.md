@@ -22,6 +22,13 @@
   - 解析 Sigma `detection`（`|contains`/`|endswith`/`|startswith`/`|re`）转 Python 正则；logsource→event_id 映射；level high/critical + 通用攻击类策展
 - ✅ `traffic_anomaly.py` http 分发补 `sqli`/`rce`/`xss`/`lfi`/`rfi` category 分支（CRS/ET 规则 emit 承载）
 
+### 阶段 2：LLM 三角色检查点机制（每步审核/决策/验证强制介入）
+- ✅ 新增 3 agent：`traffic-analyst`（traffic 决策，补零 agent 模式）+ `checkpoint-reviewer`（横向审核，检查点 A）+ `verdict-validator`（横向验证，检查点 C）
+- ✅ 强化现有 3 agent（alert-triage/log-analyzer/ir-investigator）从"可选触发"改"必跑"（检查点 B 决策）
+- ✅ SKILL.md 新增"LLM 检查点协议"段（三角色 A/B/C + 确定性步骤放行 + 大流量批量抽样）
+- ✅ 5 模式文档插入检查点标记（monitor/audit/ir/remote/traffic-audit）
+- 设计：关键检查点强制 + 确定性步骤放行（异常触发）+ 批量摘要+P0/P1 抽样（不逐条调 LLM）
+
 ## 🟡 高优先级（近期）
 
 ### 规则源扩充（国内针对性源）

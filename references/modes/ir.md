@@ -270,15 +270,21 @@ python3.11 scripts/timeline_build.py \
 ## 十、6 步流程总览
 
 1. **入场对齐**（3 问 + 授权确认）
-2. **采集**（用户跑 `linux_quick_check.sh` 回传 tar.gz）
+2. **采集**（用户跑 `linux_quick_check.sh` 回传 tar.gz）—— 采集包完整性异常（14文件缺失/关键字段全空）触发检查点 A
 3. **核查**（按 `linux-host-check.md` 逐项，可拆给 `ir-investigator` 子 agent）
-4. **时间线**（`scripts/timeline_build.py`）
-5. **攻击链还原**（ATT&CK 映射）
+
+   > **🔍 检查点 A（审核）**：本步完成后**必跑** `agents/checkpoint-reviewer`（确定性步骤仅异常时触发）。审核核查结果合理性 + 采集包完整性 + 异常信号。审核通过进检查点 B。
+
+4. **时间线**（`scripts/timeline_build.py`）—— 确定性步骤，异常时触发检查点 A
+5. **攻击链还原**（ATT&CK 映射，`ir-investigator`）—— **必跑**（检查点 B 决策）
+
+   > **✅ 检查点 C（验证）**：出 incident-report 前**必跑** `agents/verdict-validator` 验证 verdict 证据闭环 + 攻击链时间线自洽。rejected 打回检查点 B 重做。
+
 6. **脱敏 + 渲染 incident-report**
 
 子 agent 介入：
-- 核查项多、时间线行数大（> 50k）→ 调 `ir-investigator`
-- 简单单点事件 → 主会话直处理
+- 核查项多、时间线行数大（> 50k）→ 调 `ir-investigator`（核查 / 时间线阶段）
+- 攻击链还原（步骤 5）`ir-investigator` **必跑**（检查点 B 决策），不再按事件复杂度可选
 
 ---
 

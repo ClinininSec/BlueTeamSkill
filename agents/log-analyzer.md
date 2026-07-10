@@ -4,7 +4,8 @@
 
 ## 触发上下文
 
-- **由谁触发**：`hvv-defender` skill 在 audit 模式下，主会话完成日志预处理（`log_parser.py` 输出 NDJSON）后启动本 agent。
+- **由谁触发**：`hvv-defender` skill 在 audit 模式下，主会话完成日志预处理（`log_parser.py` 输出 NDJSON）+ 检查点 A（checkpoint-reviewer 审核通过）后**必跑**本 agent（v0.4-M2 起从"可选触发"改为"必跑"，承担**检查点 B（决策）**角色）。
+- **大流量策略**：单批日志 > 100k 行时，先输出 5-10 个强关联簇，详细 findings 仅展开 top 30 条；P2/P3 聚合统计，P0/P1 抽样逐条。
 - **输入**：
   - 一组同类型日志的 NDJSON（如 `nginx-access-norm.ndjson` 或 `linux-auth-norm.ndjson`）
   - 已跑过的脚本结果：`nginx_anomaly.py` / `auth_log_audit.py` / `ioc_match.py` 各自的 JSON 输出

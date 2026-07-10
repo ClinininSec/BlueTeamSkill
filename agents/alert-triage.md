@@ -4,7 +4,8 @@
 
 ## 触发上下文
 
-- **由谁触发**：`hvv-defender` skill 在 monitor 模式下，主会话完成数据预处理后启动本 agent。
+- **由谁触发**：`hvv-defender` skill 在 monitor 模式下，主会话完成数据预处理（`log_parser.py` + `ioc_match.py`）+ 检查点 A（checkpoint-reviewer 审核通过）后**必跑**本 agent（v0.4-M2 起从"可选触发"改为"必跑"，承担**检查点 B（决策）**角色）。
+- **大流量策略**：批次 > 500 条时，P3 批量合并输出、P2 聚合统计、P0/P1 抽样逐条研判（不逐条调 LLM 全量）。
 - **输入**：
   - 一个 JSON / NDJSON 文件，每条记录已含统一 schema（`log_parser.py` 输出 + `ioc_match.py` 命中信息）
   - 告警总条数（通常 100-5000 条/批）

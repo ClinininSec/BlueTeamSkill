@@ -22,6 +22,12 @@
   - `README.md` —— feeds 设计原则（离线优先/红线/幂等）+ 已实现/待实现同步器清单
   - 所有同步器支持 `--local` 指定本地已下载源目录（跳过克隆），`--dry-run` 预览
 - **消费端补强** `traffic_anomaly.py` http 分发补 `sqli`/`rce`/`xss`/`lfi`/`rfi` category 分支 —— CRS/ET 规则命中后承载 emit（R-TRAF-003 SQLi / R-TRAF-004 RCE / R-TRAF-002 XSS·LFI·RFI）
+- **LLM 三角色检查点机制**（每步审核/决策/验证强制介入）：
+  - 新增 3 agent：`agents/traffic-analyst.md`（traffic 模式决策，补零 agent 模式）+ `agents/checkpoint-reviewer.md`（横向审核，检查点 A）+ `agents/verdict-validator.md`（横向验证，检查点 C）
+  - 强化现有 3 agent（alert-triage/log-analyzer/ir-investigator）从"可选触发省 token"改"必跑"（检查点 B 决策）
+  - `SKILL.md` 新增"LLM 检查点协议"段：三角色 A审核/B决策/C验证 + 确定性步骤放行规则（归一化/脱敏/抠取正常不调 LLM，仅异常触发）+ 大流量批量抽样策略（P2/P3 聚合统计，P0/P1 抽样 ≤20 条逐条）
+  - 5 模式文档（monitor/audit/ir/remote/traffic-audit）插入检查点标记，措辞"必跑"
+  - 闭环：A→B→C，C rejected 打回 B 重做
 - **flow 握手字节检测打通**：
   - `pcap_parser.py` view_flow ① 修 conv,tcp 行解析适配新版 tshark "bytes" 后缀（既有 bug，导致 flow view 0 输出）② 额外提取每流首包 payload（latin-1 str）填入 `payload_first_bytes`
   - `traffic_anomaly.py` flow 分发补 `payload_first_bytes` case —— 激活 frp/nps/stowaway/psExec/winexe/wmi/smb/reverse-shell/meterpreter 等 16 条握手字节签名（之前是死字段）
