@@ -27,7 +27,7 @@
 | `session_log` | string | ⛔ | session log 文件路径（相对驻场机 `~`）；无 session recorder 时缺省 |
 | `dry_run` | bool | ✅ | 是否 `--dry-run` 预演；预演不产生远端调用 |
 | `os` | enum | ⛔ | `linux` / `windows` / `unknown`；从 target 主机的 `os-info` 结果缓存推断 |
-| `skill_version` | string | ⛔ | 本次执行时 skill 的版本号，如 `v0.4-M0`；用于事后回溯 |
+| `skill_version` | string | ⛔ | 本次执行时 skill 标识，用于事后回溯（可选） |
 | `client_user` | string | ⛔ | 驻场机上执行命令的账户名（脱敏前）；用于多人共用驻场机时定位 |
 | `error_hint` | string | ⛔ | 校验失败 / 拒绝执行时的原因，例 `arg-shell-metachar` / `cmd-id-not-in-whitelist` / `tier3-not-authorized` |
 
@@ -151,26 +151,26 @@ python3.11 scripts/desensitize.py \
 ### 6.1 一次典型 Tier 1 调用（成功）
 
 ```jsonl
-{"ts":"2026-07-01T14:30:12Z","action":"ssh_probe","target":"ops@svc-01","cmd_id":"list-processes","cmd_expanded":"ps -eo pid,ppid,user,stat,pcpu,pmem,etime,cmd --sort=-pcpu | head -50","tier":1,"authorized_by":"ticket-#20260701-042","allow_mutating":false,"exit_code":0,"stdout_bytes":4821,"stderr_bytes":0,"duration_ms":842,"desensitized":false,"os":"linux","skill_version":"v0.4-M0","client_user":"engineer-a","dry_run":false}
+{"ts":"2026-07-01T14:30:12Z","action":"ssh_probe","target":"ops@svc-01","cmd_id":"list-processes","cmd_expanded":"ps -eo pid,ppid,user,stat,pcpu,pmem,etime,cmd --sort=-pcpu | head -50","tier":1,"authorized_by":"ticket-#20260701-042","allow_mutating":false,"exit_code":0,"stdout_bytes":4821,"stderr_bytes":0,"duration_ms":842,"desensitized":false,"os":"linux","skill_version":"hvv-defender","client_user":"engineer-a","dry_run":false}
 ```
 
 ### 6.2 一次 Tier 3 处置 + 后置验证（两条 audit）
 
 ```jsonl
-{"ts":"2026-07-01T14:35:22Z","action":"ssh_probe","target":"ops@svc-01","cmd_id":"kill-pid","cmd_expanded":"kill -TERM 12345","tier":3,"authorized_by":"ticket-#20260701-042+voice-confirm-20260701T1432","allow_mutating":true,"exit_code":0,"stdout_bytes":0,"stderr_bytes":0,"duration_ms":314,"desensitized":false,"os":"linux","skill_version":"v0.4-M0","client_user":"engineer-a","dry_run":false}
-{"ts":"2026-07-01T14:35:26Z","action":"post_action_verify","target":"ops@svc-01","cmd_id":"list-processes","cmd_expanded":"ps -eo pid,ppid,user,stat,pcpu,pmem,etime,cmd --sort=-pcpu | head -50","tier":1,"authorized_by":"ticket-#20260701-042+voice-confirm-20260701T1432","allow_mutating":false,"exit_code":0,"stdout_bytes":4732,"stderr_bytes":0,"duration_ms":798,"desensitized":false,"error_hint":"target-pid-absent-verified","os":"linux","skill_version":"v0.4-M0","client_user":"engineer-a","dry_run":false}
+{"ts":"2026-07-01T14:35:22Z","action":"ssh_probe","target":"ops@svc-01","cmd_id":"kill-pid","cmd_expanded":"kill -TERM 12345","tier":3,"authorized_by":"ticket-#20260701-042+voice-confirm-20260701T1432","allow_mutating":true,"exit_code":0,"stdout_bytes":0,"stderr_bytes":0,"duration_ms":314,"desensitized":false,"os":"linux","skill_version":"hvv-defender","client_user":"engineer-a","dry_run":false}
+{"ts":"2026-07-01T14:35:26Z","action":"post_action_verify","target":"ops@svc-01","cmd_id":"list-processes","cmd_expanded":"ps -eo pid,ppid,user,stat,pcpu,pmem,etime,cmd --sort=-pcpu | head -50","tier":1,"authorized_by":"ticket-#20260701-042+voice-confirm-20260701T1432","allow_mutating":false,"exit_code":0,"stdout_bytes":4732,"stderr_bytes":0,"duration_ms":798,"desensitized":false,"error_hint":"target-pid-absent-verified","os":"linux","skill_version":"hvv-defender","client_user":"engineer-a","dry_run":false}
 ```
 
 ### 6.3 参数校验失败（未产生远端调用）
 
 ```jsonl
-{"ts":"2026-07-01T14:40:03Z","action":"validation_failed","target":"ops@svc-01","cmd_id":"process-inspect","cmd_expanded":"","tier":1,"authorized_by":"ticket-#20260701-042","allow_mutating":false,"exit_code":2,"stdout_bytes":0,"stderr_bytes":0,"duration_ms":3,"desensitized":false,"error_hint":"arg-shell-metachar: pid=123;whoami","skill_version":"v0.4-M0","client_user":"engineer-a","dry_run":false}
+{"ts":"2026-07-01T14:40:03Z","action":"validation_failed","target":"ops@svc-01","cmd_id":"process-inspect","cmd_expanded":"","tier":1,"authorized_by":"ticket-#20260701-042","allow_mutating":false,"exit_code":2,"stdout_bytes":0,"stderr_bytes":0,"duration_ms":3,"desensitized":false,"error_hint":"arg-shell-metachar: pid=123;whoami","skill_version":"hvv-defender","client_user":"engineer-a","dry_run":false}
 ```
 
 ### 6.4 dry-run 预演
 
 ```jsonl
-{"ts":"2026-07-01T14:29:00Z","action":"remote_collect","target":"ops@svc-01","cmd_id":"run-linux-collect","cmd_expanded":"(12 subcommands, see profile 'linux-basic')","tier":2,"authorized_by":"ticket-#20260701-042","allow_mutating":false,"exit_code":0,"stdout_bytes":0,"stderr_bytes":0,"duration_ms":8,"desensitized":false,"dry_run":true,"skill_version":"v0.4-M0","client_user":"engineer-a"}
+{"ts":"2026-07-01T14:29:00Z","action":"remote_collect","target":"ops@svc-01","cmd_id":"run-linux-collect","cmd_expanded":"(12 subcommands, see profile 'linux-basic')","tier":2,"authorized_by":"ticket-#20260701-042","allow_mutating":false,"exit_code":0,"stdout_bytes":0,"stderr_bytes":0,"duration_ms":8,"desensitized":false,"dry_run":true,"skill_version":"hvv-defender","client_user":"engineer-a"}
 ```
 
 ---

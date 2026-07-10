@@ -30,7 +30,7 @@
 | `referer` | Referer | 来源页 |
 | `status` | 后端响应码 | `200/403/500` |
 | `bytes_in / bytes_out` | 进出字节数 | 流量统计 |
-| `country` / `geoip` | 源 IP 地理位置 | （v0.1 不依赖在线 GeoIP） |
+| `country` / `geoip` | 源 IP 地理位置 | （不依赖在线 GeoIP） |
 | `asset_tag` | 资产标签 | 内部 CMDB 匹配 |
 | `attack_chain_id` | 关联攻击链 ID | 跨告警关联 |
 

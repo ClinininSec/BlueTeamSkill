@@ -211,7 +211,7 @@
 ### 9.2 蓝队 / 监管侧建议
 - SIEM 规则补充：fastjson `"@type"` 字段触发 + 异常 outbound 长连接 + cron.d 文件变更
 - 在 hvv-defender 内置 IOC 库添加本案的 `<external-ip>` `<external-domain>` `<sha256>`
-- 增加 v0.2 计划：OA / 中间件类 fastjson / log4j / shiro 专项审计 playbook
+- 可扩展：OA / 中间件类 fastjson / log4j / shiro 专项审计 playbook
 
 ---
 

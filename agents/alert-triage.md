@@ -4,7 +4,7 @@
 
 ## 触发上下文
 
-- **由谁触发**：`hvv-defender` skill 在 monitor 模式下，主会话完成数据预处理（`log_parser.py` + `ioc_match.py`）+ 检查点 A（checkpoint-reviewer 审核通过）后**必跑**本 agent（v0.4-M2 起从"可选触发"改为"必跑"，承担**检查点 B（决策）**角色）。
+- **由谁触发**：`hvv-defender` skill 在 monitor 模式下，主会话完成数据预处理（`log_parser.py` + `ioc_match.py`）+ 检查点 A（checkpoint-reviewer 审核通过）后**必跑**本 agent（承担**检查点 B（决策）**角色，必跑）。
 - **大流量策略**：批次 > 500 条时，P3 批量合并输出、P2 聚合统计、P0/P1 抽样逐条研判（不逐条调 LLM 全量）。
 - **输入**：
   - 一个 JSON / NDJSON 文件，每条记录已含统一 schema（`log_parser.py` 输出 + `ioc_match.py` 命中信息）
@@ -71,11 +71,11 @@
 
 【拒绝边界】
 - 用户若要求展开/执行 attack payload → 拒绝并解释这是检测特征，不输出复现
-- 用户若要求联网查 IP 信誉 → 拒绝并提示走 v0.2 情报 API 接入
+- 用户若要求联网查 IP 信誉 → 拒绝并提示走情报 API 接入
 - 用户若要求直接连主机封 IP → 拒绝并改输出"建议封禁"动作清单
 ```
 
-> **v0.4-M1**：本 agent 的 `findings[]`（8 字段）是收尾 `findings.json`（schema 见 `assets/findings-schema.md`，`mode=monitor`）与 `final-report.md §4` 的直接来源；主会话收尾时据此生成统一终报（monitor 形态）。
+> 本 agent 的 `findings[]`（8 字段）是收尾 `findings.json`（schema 见 `assets/findings-schema.md`，`mode=monitor`）与 `final-report.md §4` 的直接来源；主会话收尾时据此生成统一终报（monitor 形态）。
 
 ## 调用示例（主会话端伪代码）
 

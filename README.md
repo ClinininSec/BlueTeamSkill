@@ -1,7 +1,6 @@
 # hvv-defender · 护网蓝队作战 Skill
 
 <p align="center">
-  <a href="https://github.com/ClinininSec/BlueTeamSkill"><img alt="version" src="https://img.shields.io/badge/version-v0.4--M0-blue"></a>
   <a href="https://github.com/ClinininSec/BlueTeamSkill/blob/main/LICENSE"><img alt="license" src="https://img.shields.io/badge/license-Apache--2.0-green"></a>
   <img alt="platform" src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20WSL-lightgrey">
   <img alt="python" src="https://img.shields.io/badge/python-3.11%2B-blue">
@@ -25,7 +24,6 @@
 - [输出契约](#输出契约)
 - [合规与红线](#合规与红线)
 - [Credits & Prior Art](#credits--prior-art)
-- [路线图](#路线图)
 - [贡献指南](#贡献指南)
 - [License & 免责声明](#license--免责声明)
 
@@ -159,7 +157,7 @@ BlueTeamSkill/
 │   ├── tool-signatures.json             ← 60 条攻击工具特征
 │   └── webshell-patterns.json           ← 36 条 webshell 特征
 ├── references/                    ← 知识库（Claude 按需读取）
-│   ├── CHANGELOG.md / rule-id-namespaces.md / compliance.md / grading.md / glossary.md
+│   ├── rule-id-namespaces.md / compliance.md / grading.md / glossary.md
 │   ├── modes/                     ← 5 模式详细流程
 │   ├── playbooks/                 ← 6 类攻击处置剧本
 │   ├── attack-patterns/           ← 9 份特征知识库
@@ -174,7 +172,7 @@ BlueTeamSkill/
     ├── vendor_field_mapper              ← 4 家厂商字段归一化
     ├── desensitize                      ← 输出脱敏（所有 stdout 强制过）
     ├── linux_quick_check.sh / windows_quick_check.ps1  ← 主机一键采集
-    └── remote/                    ← v0.4-M0 remote 模式
+    └── remote/                    ← remote 模式（SSH 远程执行）
         ├── ssh_probe.py           ← 单命令远程执行（白名单校验 + audit + 录制）
         ├── remote_collect.py      ← 组合采集（上传 → 执行 → 回传 → 清理）
         └── session_recorder.sh    ← 交互式会话全程录制（script 命令）
@@ -254,22 +252,13 @@ IOC schema：`type` / `value`（脱敏）/ `confidence` / `first_seen` / `source
 
 10. **一致的错误码与退出语义** — 参考 skill 大多是纯 markdown 指引，没有可编排的退出码。hvv-defender 每个脚本约定退出码（`0` 干净 / `1` 数据缺失 / `2` 授权失败 / `3` 白名单校验拒绝），便于外部编排。
 
-**致谢**：mukul975/Anthropic-Cybersecurity-Skills 的框架映射方法（每个 skill 挂 MITRE ATT&CK ID）值得借鉴。**未来的版本 v0.5+ 计划在**每条 `R-*` / `PLB-*` 规则**上补充 MITRE ATT&CK Technique ID + NIST CSF 引用**，与该生态互通。
+**致谢**：mukul975/Anthropic-Cybersecurity-Skills 的框架映射方法（每个 skill 挂 MITRE ATT&CK ID）值得借鉴。后续可在每条 `R-*` / `PLB-*` 规则上补充 MITRE ATT&CK Technique ID + NIST CSF 引用，与该生态互通。
 
 ---
 
 ## 路线图
 
-- ✅ v0.1 — MVP 三模式（monitor / audit / ir）+ 5 playbook + 8 脚本 + 51 IOC
-- ✅ v0.2 — traffic 模式（pcap）+ 86 条流量特征
-- ✅ v0.2.1 — `hvv_init.sh` 一键环境初始化
-- ✅ v0.3-M1 — 4 家厂商告警研判 + Windows 主机 IR 全套 + 流量规则深化到 126 条
-- ✅ **v0.4-M0（当前）** — remote 第 5 模式 + 59 条 3-tier 白名单 + 会话审计
-- 🔜 v0.3-M2 — phishing / ransomware / data-exfil / 0day-emerge / AD 攻击 playbook
-- 🔜 v0.5 — 规则映射 MITRE ATT&CK Technique ID · MCP 工具化 · 情报 API 接入
-- 🔜 v0.6+ — AI 辅助规则挖掘 · 告警根因分析 · 多主机集群模式
-
-详细版本历史见 [`references/CHANGELOG.md`](references/CHANGELOG.md)。
+本项目为最终版本，不再维护版本号。后续如有增强（MITRE ATT&CK 规则映射、MCP 工具化、情报 API 接入、AI 辅助规则挖掘等）直接在对应模块迭代。
 
 ---
 

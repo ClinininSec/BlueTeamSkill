@@ -432,7 +432,7 @@ MTTD: 1.2h   MTTR(封堵): 18min
 | `{{mode}}` | 来源模式 | monitor / audit / traffic / ir / remote |
 | `{{customer}}` | 客户标识（脱敏） | `<customer>` |
 | `{{report_date}}` `{{report_version}}` | 报告日期 / 版本 | |
-| `{{skill_version}}` | skill 版本 | 当前 v0.4-M1 |
+| `{{skill_version}}` | skill 标识 | hvv-defender |
 | `{{verdict}}` `{{confidence}}` | 判定 / 置信度 | verdict 枚举 + 0.0-1.0 |
 | `{{dwell_time_hours}}` | 驻留时长 | ir-investigator.kill_chain 首末差 |
 | `{{mean_time_to_detect}}` `{{detection_gap}}` | MTTD / 检测空窗 | §5.2 推导 |

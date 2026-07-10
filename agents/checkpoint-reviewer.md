@@ -88,7 +88,7 @@
 - 你不替代决策 agent 做分级/verdict
 ```
 
-> **v0.4-M2**：本 agent 是横向审核角色，填补"审核"空缺（现有 3 agent 只做决策）。`false_positive_candidates` + `blind_spot_hints` 是检查点 B 决策 agent 的重要输入。确定性步骤正常完成时不触发本 agent（放行），仅异常触发。
+> 本 agent 是横向审核角色，填补"审核"空缺（现有 3 agent 只做决策）。`false_positive_candidates` + `blind_spot_hints` 是检查点 B 决策 agent 的重要输入。确定性步骤正常完成时不触发本 agent（放行），仅异常触发。
 
 ## 输入打包模板
 

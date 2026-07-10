@@ -659,14 +659,14 @@ Wireshark 图形化操作：
 - 命令执行 / RCE 处置剧本：`references/playbooks/command-exec.md`
 - 横向移动处置剧本：`references/playbooks/lateral-movement.md`
 - audit 模式流程：`references/modes/audit.md`
-- **v0.3-M1 新增**：TLS 指纹深化 `references/attack-patterns/tls-fingerprints.md`
-- **v0.3-M1 新增**：DNS 隐蔽通道深化 `references/attack-patterns/dns-covert-channels.md`
+- TLS 指纹深化 `references/attack-patterns/tls-fingerprints.md`
+- DNS 隐蔽通道深化 `references/attack-patterns/dns-covert-channels.md`
 
 ---
 
-## 十一、TLS/DNS 深化审计（v0.3-M1）
+## 十一、TLS/DNS 深化审计
 
-> 本章补充 v0.3-M1 新增的 45 条规则（R-TRAF-050~098）在 traffic 模式下的实战审计路径。
+> 本章补充 TLS/DNS 深化的 45 条规则（R-TRAF-050~098）在 traffic 模式下的实战审计路径。
 > 与前十章的通用流程互补：前十章是"基础扫描 + 主流类型"，本章是"加密 C2 深挖 + 国内红队工具深挖"。
 
 ### 11.1 规则组速览
@@ -846,7 +846,7 @@ pcap_parser.py --input /tmp/case-E.pcap --views tls \
 
 ### 11.8 tshark 字段依赖
 
-v0.3-M1 部分规则依赖 tshark >= 3.6 的字段：
+部分规则依赖 tshark >= 3.6 的字段：
 
 | 规则 | 依赖字段 | tshark 版本 |
 |---|---|---|
@@ -859,9 +859,9 @@ v0.3-M1 部分规则依赖 tshark >= 3.6 的字段：
 - 相关规则会**无声跳过**（`raw` 字段缺失 → 判定不触发）
 - 建议升级到 wireshark 4.0+（`brew install wireshark` / `apt install wireshark`）
 
-### 11.9 v0.3-M1 命中率预期
+### 11.9 命中率预期
 
-在标准红蓝演练 pcap（约 30 min 流量、10-20 GB）中，v0.3-M1 规则的预期命中：
+在标准红蓝演练 pcap（约 30 min 流量、10-20 GB）中，深化规则的预期命中：
 
 | 规则组 | 预期命中数 | 备注 |
 |---|---|---|
@@ -872,7 +872,7 @@ v0.3-M1 部分规则依赖 tshark >= 3.6 的字段：
 
 命中数量与客户业务规模、pcap 时长、被攻击程度强相关，此处仅供**校准基线**参考。
 
-### 11.10 附录：v0.3-M1 规则速查表
+### 11.10 附录：深化规则速查表
 
 | rule_id | 主视图 | severity | 命中条件（一句话） |
 |---|---|---|---|
@@ -947,4 +947,4 @@ traffic 六步审计 + TLS/DNS 深化完成后，**必须**输出跨模式统一
 
 > traffic 发现 webshell 落地 / C2 确认 / 横向移动等入侵信号 → 升级 ir，终报改走 ir 形态，traffic 形态作为网络侧证据挂附件。
 
-> **与其他文档的交叉索引**：见原 §附录 D；本 §十二 为 v0.4-M1 新增。
+> **与其他文档的交叉索引**：见原 §附录 D。

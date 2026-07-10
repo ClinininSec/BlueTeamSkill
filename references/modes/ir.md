@@ -34,7 +34,7 @@
 
 - **在线 + 业务运行中**：优先内存取证，慎做断网 / 断电
 - **已断网隔离**：可放心做磁盘级采集
-- **已下线**：磁盘镜像，离线分析（v0.1 暂不内置镜像挂载流程，提示用户回传文件）
+- **已下线**：磁盘镜像，离线分析
 
 ### Q3：是否需要保留快照 / 内存镜像？
 
@@ -75,9 +75,9 @@ bash scripts/linux_quick_check.sh -o /tmp/hvv-collect-<host>.tar.gz
 
 **回传方式**：用户把 tar.gz 拷到本地 Skill 工作目录，告知 Skill 路径。
 
-### 3.2 Windows 主机（v0.2）
+### 3.2 Windows 主机
 
-v0.1 不内置自动化脚本，引导用户手动采集：
+不内置自动化脚本，引导用户手动采集：
 
 - `Get-WinEvent -LogName Security`（导出 evtx-csv）
 - `Get-Process | Export-Csv`
@@ -153,7 +153,7 @@ python3.11 scripts/timeline_build.py \
 | 战术 | 英文 | 典型证据（在驻场场景） |
 |---|---|---|
 | 侦察 | Reconnaissance | 资产扫描器 UA 在 nginx 出现 / 端口扫描 |
-| 资源开发 | Resource Development | 攻击者 C2 域名注册（多来自外部情报，v0.1 不直接判定） |
+| 资源开发 | Resource Development | 攻击者 C2 域名注册（多来自外部情报，不直接判定） |
 | 初始访问 | Initial Access | 漏洞利用成功（fastjson/log4j RCE 触发） / 弱口令登录 / phishing 落地 |
 | 执行 | Execution | webshell 命令执行 / cmd.exe / powershell / bash 异常调用 |
 | 持久化 | Persistence | cron / systemd 服务 / authorized_keys / 启动项 / WMI 订阅 |

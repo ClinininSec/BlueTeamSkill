@@ -1,14 +1,15 @@
 ---
 name: hvv-defender
 description: |
-  护网蓝队驻场作战 skill。覆盖 monitor（告警分诊）/ audit（日志审计）/ traffic（pcap 流量审计）/ ir（应急响应）/ remote（授权 SSH 远程分析）五模式一体化作业，面向乙方驻场。
+  护网蓝队驻场作战 skill。把告警分诊、日志审计、pcap 流量审计、应急响应、授权 SSH 远程采集五件事整合成 monitor / audit / traffic / ir / remote 五模式一体化作业台，面向乙方驻场。
 
-  当用户说 "帮我看这批告警 / 分诊 SIEM 告警 / 值守日报 / 审计 nginx / auth.log / 排查 SSH 暴破 / webshell 扫描 / 分析 pcap / wireshark 抓包 / tcpdump / 识别 C2 / JA3 指纹 / DNS 隧道 / 主机怀疑被入侵 / 应急响应 / 还原攻击链 / 出事件报告 / evtx 分析 / Windows 主机排查 / NGSOC / 深信服 SIP / 长亭雷池 / 明御 WAF / 远程 SSH 采集 / 远程执行命令 / 提取 IOC / 这个 IP 是不是 C2 / 这个 hash 有没有见过 / log4j 检测规则怎么写" 中的任一类时，优先激活本 skill。
+  当用户说"帮我看这批告警 / 分诊 SIEM 告警 / 值守日报 / 审计 nginx / auth.log / 排查 SSH 暴破 / webshell 扫描 / 分析 pcap / wireshark 抓包 / tcpdump / 识别 C2 / JA3 指纹 / DNS 隧道 / 主机怀疑被入侵 / 应急响应 / 还原攻击链 / 出事件报告 / evtx 分析 / Windows 主机排查 / NGSOC / 深信服 SIP / 长亭雷池 / 明御 WAF / 远程 SSH 采集 / 远程执行命令 / 提取 IOC / 这个 IP 是不是 C2 / 这个 hash 有没有见过 / log4j 检测规则怎么写"中的任一类时，优先激活本 skill；涉及护网、蓝队、驻场防守、SIEM 告警研判、pcap 取证、主机失陷排查、远程授权操作的请求都应触发，即使用户没点名"护网"。
 
-  设计原则：离线优先 + 授权远程；脱敏内建；每条告警必附证据；红线三条：不出 PoC / 不做破坏动作 / 不做横移。首次使用先跑 `bash scripts/hvv_init.sh` 装依赖（tshark + python3.11 + sshpass/expect）。当前版本 v0.4-M1，历史版本见 `references/CHANGELOG.md`。
+  设计原则：离线优先 + 授权远程；脱敏内建；每条告警必附证据；红线三条——不出 PoC / 不做破坏动作 / 不做横移。
 allowed-tools:
   - Read
   - Write
+  - Edit
   - Grep
   - Glob
   - Bash
@@ -57,7 +58,6 @@ model: sonnet
 | 分级标准 | `references/grading.md` | P0-P3 定义 + SLA，跨客户语义一致 |
 | 合规边界 | `references/compliance.md` | 脱敏规则、数据外发禁止项、操作红线、远程连接四要素 |
 | 规则命名分层 | `references/rule-id-namespaces.md` | 所有 `R-*` / `PLB-*` / `SIG-*` / `CHECK-*` 前缀的命名空间总表 |
-| 版本历史 | `references/CHANGELOG.md` | v0.1 → v0.4-M1 的能力演化 |
 | 术语表 | `references/glossary.md` | 蓝队 / 红队 / 监管侧术语映射 |
 | 跨规则关联 agent | `agents/log-analyzer.md` | audit 模式跨源关联分析（检查点 B 决策） |
 | 告警分诊 agent | `agents/alert-triage.md` | monitor 模式 P0-P3 分级 + 误报判定（检查点 B 决策） |
@@ -99,7 +99,7 @@ bash scripts/hvv_init.sh
 
 - **monitor（值守监管）** —— SIEM/告警批次分诊、误报研判、值守日报；支持 4 家国产厂商字段归一化（NGSOC / SIP / SafeLine / 明御 WAF）；输入告警 JSON/CSV，输出 P0-P3 分级清单 + 待跟进列表。详见 `references/modes/monitor.md`。
 - **audit（日志审计）** —— 主动审计指定时段 / 系统日志（nginx access、auth.log、windows evtx 导出），输出异常清单（带证据行号）+ 标准 IOC 列表。详见 `references/modes/audit.md`。
-- **traffic（流量审计）** —— 对 wireshark/tcpdump 抓取的 pcap/pcapng 做离线审计；六大视图（http / dns / tls / flow / creds / conn）× 69 条规则（基础 12 + Windows 横向 4 + 内网穿透 3 + TLS 深化 20 + DNS 深化 15 + 国内红队工具 14 + `R-TRAF-999` 关联簇），输出异常清单 + IOC。**需要本机预装 tshark**。详见 `references/playbooks/traffic-audit.md`。
+- **traffic（流量审计）** —— 对 wireshark/tcpdump 抓取的 pcap/pcapng 做离线审计；六大视图（http / dns / tls / flow / creds / conn）× 1787 条签名（项目自维护 + OWASP CRS / ET Open 通用规则同步），输出异常清单 + IOC。**需要本机预装 tshark**。详见 `references/playbooks/traffic-audit.md`。
 - **ir（应急响应）** —— 怀疑或确认入侵后的取证排查，覆盖 Linux（`linux_quick_check.sh` + 14 章核查清单）与 Windows（`windows_quick_check.ps1` + `evtx_hunt.py` 22 条 `R-WIN-*` + 14 章 48 项核查），还原攻击链，输出 `incident-report`。详见 `references/modes/ir.md`。
 - **remote（远程 SSH 分析）** —— 授权+白名单+审计+录制四要素约束下的 SSH 远程执行；59 条命令白名单 3 tier（40 只读 / 8 采集 / 11 处置）；Tier 3 默认关，需二次授权；堡垒机场景降级到 H-I-L（只生成命令清单让驻场人员在堡垒机 web 端粘贴）。详见 `references/modes/remote.md`；合规四要素见该文件 §二；命令白名单见 `references/remote-command-whitelist.md`。
 
@@ -114,7 +114,7 @@ monitor 命中 P0/P1  →  转 audit 或 traffic 深挖证据  →  确认入侵
 
 `remote` 与 `ir` 互补：`remote` 负责"从客户机拉数据 / 发命令"，`ir` 负责"分析数据 + 攻击链还原"。两者可独立跑，也可组合。
 
-## LLM 检查点协议（v0.4-M2：每步审核/决策/验证强制介入）
+## LLM 检查点协议（每步审核/决策/验证强制介入）
 
 五模式工作流不再是"纯脚本流水线 + LLM 可选研判"，而是**关键节点强制 LLM 介入**的三角色检查点闭环。每个模式在脚本步骤间设 3 个检查点：
 

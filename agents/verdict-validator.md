@@ -87,7 +87,7 @@
 - 你不直接发布报告（主会话据你结论发布）
 ```
 
-> **v0.4-M2**：本 agent 是横向验证角色，填补"验证"空缺。`checks.followup_complete` + `checks.evidence_closed` 是报告质量的核心保障。rejected 打回 B 形成 A→B→C→(reject)→B 闭环。
+> 本 agent 是横向验证角色，填补"验证"空缺。`checks.followup_complete` + `checks.evidence_closed` 是报告质量的核心保障。rejected 打回 B 形成 A→B→C→(reject)→B 闭环。
 
 ## 输入打包模板
 

@@ -150,7 +150,7 @@
 - **ELK**：作为 `_source` 直接索引（type / value / tag / first_seen 字段无需重命名）
 - **QRadar / Sumo / 国内常见替代**：导出为 CSV `type,value,confidence,first_seen,source,tag`
 
-`hvv-defender` v0.1 不提供自动导入脚本（属于"厂商对接"，v0.3 引入）。值守班用户可手工转换或写自有桥接脚本。
+`hvv-defender` 不提供自动导入脚本（属于"厂商对接"）。值守班用户可手工转换或写自有桥接脚本。
 
 ---
 

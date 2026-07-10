@@ -4,7 +4,7 @@
 
 ## 触发上下文
 
-- **由谁触发**：`hvv-defender` skill 在 ir 模式下，主会话完成 `linux_quick_check.sh` 输出解析 + `linux-host-check.md` 逐项核查 + `timeline_build.py` 时间线合并 + 检查点 A（checkpoint-reviewer 审核通过）后**必跑**本 agent（v0.4-M2 起从"可选触发"改为"必跑"，承担**检查点 B（决策）**角色）。
+- **由谁触发**：`hvv-defender` skill 在 ir 模式下，主会话完成 `linux_quick_check.sh` 输出解析 + `linux-host-check.md` 逐项核查 + `timeline_build.py` 时间线合并 + 检查点 A（checkpoint-reviewer 审核通过）后**必跑**本 agent（承担**检查点 B（决策）**角色，必跑）。
 - **输入**：
   - 主机采集压缩包解压后的目录（`hvv-collect-<host>-<ts>/`）
   - linux-host-check 14 大类核查结果（CHECK-LIN-X.Y 命中清单）
@@ -140,7 +140,7 @@
 - 证据不足以闭环 → 标 inconclusive，列出"还需采集什么证据"
 ```
 
-> **v0.4-M1**：本 agent 的 `verdict` / `kill_chain` / `scope_assessment` / `dwell_time_hours` 是收尾 `findings.json`（schema 见 `assets/findings-schema.md`，`mode=ir`）的 `verdict` / `attack_paths[]` / 顶层字段的直接来源；`findings[]`（8 字段）由主会话合并各检测脚本 + 本 agent 输出生成。主会话收尾时据此渲染 `final-report.md`（ir 形态，最厚）。
+> 本 agent 的 `verdict` / `kill_chain` / `scope_assessment` / `dwell_time_hours` 是收尾 `findings.json`（schema 见 `assets/findings-schema.md`，`mode=ir`）的 `verdict` / `attack_paths[]` / 顶层字段的直接来源；`findings[]`（8 字段）由主会话合并各检测脚本 + 本 agent 输出生成。主会话收尾时据此渲染 `final-report.md`（ir 形态，最厚）。
 
 ## 输入打包模板
 

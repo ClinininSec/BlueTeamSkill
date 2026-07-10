@@ -86,7 +86,7 @@ python3.11 scripts/log_parser.py \
 
 **产出**：归一化的 JSONL，每行一条告警 + 标准字段。
 
-#### 3.1.1 通过 `--vendor <name>` 消费厂商专属告警（v0.3-M1 新增）
+#### 3.1.1 通过 `--vendor <name>` 消费厂商专属告警
 
 当输入是 4 家国产安全设备中任意一家导出的告警 JSON/CSV 时，主流程不必手写字段映射，可直接调用 `scripts/vendor_field_mapper.py` 生成标准 12 字段 NDJSON，随后喂给步骤 2 的 `ioc_match.py`。
 

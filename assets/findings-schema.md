@@ -188,7 +188,7 @@
 - **QRadar / 工单系统**：拍平 `findings[]` 为 CSV `id,severity,category,rule_id,false_positive_prob,recommended_action`
 - **SIEM 联动**：`ioc_ref` 指向的 IOC 文件 import 为 lookup 表，`findings[].iocs` 与之 join 形成"发现 → IOC → 持续监控"闭环
 
-`hvv-defender` v0.4-M1 不提供自动导入脚本（属"厂商对接"，v0.3+ 引入）。值守班可手工转换或写桥接脚本。
+`hvv-defender` 不提供自动导入脚本（属"厂商对接"）。值守班可手工转换或写桥接脚本。
 
 ---
 

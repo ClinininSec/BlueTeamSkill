@@ -96,7 +96,7 @@
 ## 七、Havoc / Nighthawk / SilentTrinity（点到为止）
 
 - **Havoc**：开源 CS-like，默认 demon agent UA 含 `Havoc-` 字样（部分 build）；通信特征与 CS 相近。
-- **Nighthawk**：商业，国内护网 v0.1 罕见，识别要点同 Mythic。
+- **Nighthawk**：商业，国内护网罕见，识别要点同 Mythic。
 - **SilentTrinity**：基于 .NET，IronPython 解释 payload，进程含 `ipy.exe` / `ironpython` 字符串。
 
 ---
