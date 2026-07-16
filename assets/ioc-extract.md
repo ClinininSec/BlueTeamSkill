@@ -2,7 +2,7 @@
 
 > 本模板定义 `hvv-defender` skill 在任意模式下输出 IOC（Indicator of Compromise）时遵循的统一 schema。
 >
-> 所有脚本（`ioc_match.py` / `nginx_anomaly.py` / `auth_log_audit.py` / `webshell_scan.py`）与子 agent（`alert-triage` / `log-analyzer` / `ir-investigator`）输出 IOC 时必须严格遵循。
+> 所有脚本（`ioc_match.py` / `nginx_anomaly.py` / `auth_log_audit.py` / `webshell_scan.py` / `traffic_anomaly.py`）与子 agent（`alert-triage` / `log-analyzer` / `traffic-analyst` / `ir-investigator`）输出 IOC 时必须严格遵循。
 >
 > 该格式与主流 SIEM（Splunk / ELK / QRadar 国内常见替代）的 lookup 表兼容，可直接 import。
 
@@ -14,8 +14,8 @@
 {
   "version": "0.1",
   "generated_at": "2026-06-30T18:00:00+08:00",
-  "case_id": "MON-2026-06-30 | AUD-2026-06-30 | IR-2026-06-30-<host_hash>",
-  "mode": "monitor | audit | ir",
+  "case_id": "MON-2026-06-30 | AUD-2026-06-30 | TRAF-2026-06-30 | IR-2026-06-30-<host_hash> | REM-2026-06-30",
+  "mode": "monitor | audit | traffic | ir | remote",
   "customer": "<customer>",
   "skill_version": "hvv-defender@0.1",
   "desensitized": true,
@@ -40,7 +40,7 @@
 
 ---
 
-## 2. 单条 IOC schema（7 字段，1 可选）
+## 2. 单条 IOC schema（6 必填字段 + 可选 description）
 
 ```json
 {
@@ -138,7 +138,9 @@
 |---|---|---|
 | monitor | `iocs-monitor-<date>.json` | 客户值守目录 |
 | audit | `iocs-audit-<date>-<system>.json` | 审计案件目录 |
+| traffic | `iocs-TRAF-<date>-<pcap>.json` | 流量案件目录 |
 | ir | `iocs-<case_id>.json` | incident 案件目录 |
+| remote | `iocs-REM-<date>-<host>.json` | remote 案件目录 |
 
 文件后缀必须为 `.json`，UTF-8 无 BOM，`indent=2`。
 
@@ -158,7 +160,7 @@
 
 - [ ] `version` `generated_at` `case_id` `mode` `customer` `total` 顶层字段齐全
 - [ ] `desensitized` 字段为 `true`，且确实跑过 `desensitize.py`
-- [ ] 每条 IOC 含必填 7 字段
+- [ ] 每条 IOC 含必填 6 字段（type/value/confidence/first_seen/source/tag）
 - [ ] `type` 取值在清单内
 - [ ] `confidence` 仅 high/medium/low 三档
 - [ ] `tag` 符合 `category:subtype` 命名

@@ -47,7 +47,7 @@ model: sonnet
 
 | 类别 | 位置 | 用途 |
 |---|---|---|
-| 模式流程 | `references/modes/{monitor,audit,traffic,ir,remote}.md` | 五模式的详细步骤与决策树 |
+| 模式流程 | `references/modes/{monitor,audit,ir,remote}.md` + `references/playbooks/traffic-audit.md`（traffic） | 五模式的详细步骤与决策树（traffic 流程在 traffic-audit playbook） |
 | 处置剧本 | `references/playbooks/*.md` | 6 类攻击的端到端处置（含特征 / 查询 / 止血 / 根除 / IOC） |
 | 流量审计剧本 | `references/playbooks/traffic-audit.md` | pcap 六步审计 + TLS / DNS 深化 |
 | 日志字段 | `references/log-fields/*.md` | 主流日志字段速查 + 4 家国产厂商抽屉 + audit-session（remote 审计字段） |
@@ -134,7 +134,7 @@ monitor 命中 P0/P1  →  转 audit 或 traffic 深挖证据  →  确认入侵
 
 所有 `R-*` / `PLB-*` 命中都输出统一 **8 字段告警条目**：`id` / `severity` (P0-P3) / `category` / `evidence`（脱敏后原文+行号）/ `rule_id` / `false_positive_prob` (0.0-1.0) / `recommended_action` / `iocs`（可空）。
 
-IOC 输出走 **标准 schema**：`type` / `value`（脱敏）/ `confidence` / `first_seen` / `source` / `tag`。
+IOC 输出走 **标准 schema**：6 必填字段 `type` / `value`（脱敏）/ `confidence` / `first_seen` / `source` / `tag`，外加可选 `description`（`last_seen` / `count` 为进一步扩展）。
 
 **收尾统一报告**：任意模式得出结论后，输出跨模式一致的 markdown 终报 `assets/final-report.md`（按攻击路径组织，10 节 spine + 模式激活表，5 模式各有变体），并同生机器可读伴生文件 `findings.json`（schema 见 `assets/findings-schema.md`；`findings[]` 严格遵循上述 8 字段契约，`attack_paths[]` 消费 `agents/ir-investigator` 的 `kill_chain`）。现有 4 个模板（`incident-report` / `daily-report` / `ioc-extract` / `handover`）降为终报的模式专属附件。
 

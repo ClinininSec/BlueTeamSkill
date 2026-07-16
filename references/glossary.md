@@ -87,7 +87,7 @@
 
 | 术语 | 含义 |
 |---|---|
-| MON / AUD / IR | 三模式 ID 前缀（monitor/audit/ir） |
+| MON / AUD / TRAF / IR / REM | 五模式 finding ID 前缀（monitor/audit/traffic/ir/remote） |
 | R-NGX-001 | 规则 ID 命名约定：`R-<日志类型缩写>-<序号>` |
 | PLB-WS-002 | playbook 规则 ID：`PLB-<类型缩写>-<序号>` |
 | FP / TP | False Positive / True Positive，误报 / 真报 |

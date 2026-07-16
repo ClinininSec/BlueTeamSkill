@@ -148,7 +148,7 @@ scripts/traffic_anomaly.py \
 
 ```json
 {
-  "id": "AUD-TRAF-001",
+  "id": "TRAF-001",
   "severity": "P0",
   "category": "c2",
   "rule_id": "R-TRAF-053",

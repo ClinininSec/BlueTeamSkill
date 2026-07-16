@@ -1,6 +1,6 @@
 # 告警分级标准（Grading）
 
-> 统一 P0-P3 定义，跨客户语义一致。所有三模式（monitor / audit / ir）共享本表。SKILL.md 输出契约中的 `severity` 字段必须从本表取值。
+> 统一 P0-P3 定义，跨客户语义一致。所有五模式（monitor / audit / traffic / ir / remote）共享本表。SKILL.md 输出契约中的 `severity` 字段必须从本表取值。
 
 ---
 
@@ -152,6 +152,6 @@ severity_map:
 
 ## 相关引用
 
-- 三模式如何使用本分级：`references/modes/{monitor,audit,ir}.md`
+- 各模式如何使用本分级：`references/modes/{monitor,audit,ir,remote}.md` + `references/playbooks/traffic-audit.md`（traffic）
 - 脱敏与通报红线：`references/compliance.md`
 - 输出 schema 字段：`SKILL.md` 输出契约小节

@@ -11,7 +11,7 @@
   - 脚本输出**摘要**（聚合统计 + P0/P1 抽样 ≤20 条原文，非全量）
   - 步骤元信息：脚本名、输入文件、退出码、输出记录数
   - 该步骤的上下文（模式、时间窗、客户上下文摘要）
-- **输出**：审核结论 `{status, issues, rerun_hint, false_positive_candidates}`
+- **输出**：审核结论 `{status, issues, false_positive_candidates, blind_spot_hints, rerun_hint, decision}`
 
 ## 子 agent System Prompt
 

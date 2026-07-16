@@ -13,7 +13,7 @@
 | `R-WIN-NNN` | Windows evtx 运行时规则 | `scripts/evtx_hunt.py` | ✅ 22 条，Security / Kerberos / PowerShell / Sysmon 四组 |
 | `R-REM-NNN` | Remote 只读 / 采集运行时 | `scripts/remote/ssh_probe.py` `remote_collect.py` | ✅ 每次成功执行 emit 一条 8 字段告警 + 一条 audit.jsonl 审计条目 |
 | `R-REM-DISP-NNN` | Remote Tier 3 处置类 | 同上，`allow_mutating=true` 时 emit | ✅ 独立命名空间便于告警审计区分只读 vs 处置 |
-| `CHECK-LIN-N.N` | Linux 主机核查项 | `references/ioc-checklist/linux-host-check.md` | ❌ `linux_quick_check.sh` 采集后照清单人工核，14 章 |
+| `CHECK-LIN-N.N` | Linux 主机核查项 | `references/ioc-checklist/linux-host-check.md` | ❌ `linux_quick_check.sh` 采集后照清单人工核，14 章；`remote-command-whitelist.json` 的 `related_check` 用功能域变体 `CHECK-LIN-<AREA>-NN`（PROC/NET/AUTH/PERSIST/FS/WEBSHELL/INFO/LOG）映射到对应章节 |
 | `CHECK-WIN-N.N` | Windows 主机核查项 | `references/ioc-checklist/windows-host-check.md` | ❌ `windows_quick_check.ps1` 采集后照清单人工核，14 章 48 项 |
 | `IOC-<type>` | ioc_match 命中分类 | `scripts/ioc_match.py` 输出的分类 tag；匹配库位于 `data/ioc-builtin.json`（51 条基线 IOC） | ✅ 由 `ioc_match.py` emit |
 | `VENDOR-<name>` | 厂商归一化标签 | `scripts/vendor_field_mapper.py` 输出中的 `vendor` 字段 | ✅ 由 mapper emit，用于告警按厂商切片 |
@@ -35,7 +35,7 @@
 
 | 字段 | 取值 | 必填 |
 |---|---|---|
-| `id` | 本次会话唯一（`MON-001` / `AUD-001` / `IR-001` / `TRAF-001` / `REM-001`） | ✅ |
+| `id` | 本次会话唯一（`MON-001` / `AUD-001` / `IR-001` / `TRAF-001` / `REM-001`）；见下方两种形态说明 | ✅ |
 | `severity` | `P0` / `P1` / `P2` / `P3` | ✅ |
 | `category` | webshell / brute-force / sqli / rce / lateral / recon / data-exfil / 其他 | ✅ |
 | `evidence` | 日志原文（脱敏后）+ 行号 / 文件路径 | ✅ |
@@ -44,7 +44,9 @@
 | `recommended_action` | 处置建议（参考对应 playbook） | ✅ |
 | `iocs` | 提取出的 IOC 列表（按 IOC schema） | ⛔ 可空 |
 
-## 四、IOC 标准 schema（用于 `assets/ioc-extract.md`）
+> **finding `id` 两种形态（同指一条发现）**：决策 agent 与工作清单用**模式前缀** `<MODE>-NNN`（`MON-001`/`AUD-001`/`TRAF-001`/`IR-001`/`REM-001`）；按严重度组织的 `final-report.md`/`daily-report.md` 与 `findings.json` finding 卡用**严重度前缀** `<severity>-NNN`（`P0-001`/`P1-001`…）。报告渲染时可按严重度重新编号，两种前缀均为合法写法。
+
+## 四、IOC 标准 schema（6 必填字段 + 可选 `description`；权威定义见 `assets/ioc-extract.md §2`）
 
 | 字段 | 取值 | 说明 |
 |---|---|---|
@@ -53,7 +55,8 @@
 | `confidence` | `high` / `medium` / `low` | |
 | `first_seen` | 日志中首次出现的时间戳 | |
 | `source` | 提取来源：日志文件 + 行号 / 规则 ID | |
-| `tag` | 可选：`tool:fscan` / `c2:cobaltstrike` / `fp-suspect` | |
+| `tag` | `tool:fscan` / `c2:cobaltstrike` / `fp-suspect` | 必填；格式 `category:subtype` |
+| `description` | 一句话上下文 | 可选（另有可选 `last_seen` / `count` 扩展） |
 
 ## 五、findings.json 伴生 schema（用于 `assets/findings-schema.md`）
 

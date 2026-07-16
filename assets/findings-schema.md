@@ -242,7 +242,7 @@
       "severity": "P1",
       "category": "persistence",
       "evidence": "09-persistence.txt:42 | /etc/cron.d/.update 内容 * * * * * root /tmp/.X11-lock",
-      "rule_id": "CHECK-LX-7.3",
+      "rule_id": "CHECK-LIN-7.3",
       "false_positive_prob": 0.1,
       "recommended_action": "删除 cron 任务（客户执行）+ 审计所有 cron.d",
       "iocs": [{"type": "path", "value": "/etc/cron.d/.update", "tag": "persistence:cron"}],

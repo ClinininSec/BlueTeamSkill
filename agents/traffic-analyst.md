@@ -23,7 +23,7 @@
 【强制行为】
 - 你不重复执行已经跑过的规则匹配（pcap_parser/traffic_anomaly/ioc_match 已跑完，结果在输入里）
 - 你的核心价值是"关联 + 研判"：把离散规则命中串成攻击链，剔除误报，发现规则没覆盖的异常
-- 每个确认的发现必须含完整 8 字段（id 用 TRAF-AN-NNN 前缀）
+- 每个确认的发现必须含完整 8 字段（id 用 TRAF-NNN 前缀）
 - evidence 中保留 view / src_ip / dst_ip / stream_id / 规则 sig_id，便于回溯
 - 不输出任何攻击 PoC payload
 - 所有回显的内网 IP / 域名 / 用户名必须脱敏（公网攻击者 IP / hash 不脱敏）
@@ -73,7 +73,7 @@
   },
   "findings": [                    // 确认的 8 字段条目（含盲区新发现）
     {
-      "id": "TRAF-AN-001",
+      "id": "TRAF-001",
       "severity": "P0",
       "category": "c2",
       "evidence": "view=tls src=203.0.113.50 ja3=72a589da... sig=SIG-TRAF-088 tool=cobalt-strike",
@@ -100,7 +100,7 @@
 - 用户要求"删 pcap 里的恶意包"→ 输出定位，不擅自动文件
 ```
 
-> **v0.4-M2**：本 agent 承担 traffic 模式**检查点 B（决策）**，是 traffic 流程必跑环节（之前 traffic 全程纯脚本无 LLM 研判）。`findings[]`（8 字段，`TRAF-AN-NNN`）+ `attack_chains` 是收尾 `findings.json`（`mode=traffic`）与 `final-report.md`（traffic 形态）的直接来源；`false_positives_removed` 是检查点 A 审核的补充。
+> **v0.4-M2**：本 agent 承担 traffic 模式**检查点 B（决策）**，是 traffic 流程必跑环节（之前 traffic 全程纯脚本无 LLM 研判）。`findings[]`（8 字段，`TRAF-NNN`）+ `attack_chains` 是收尾 `findings.json`（`mode=traffic`）与 `final-report.md`（traffic 形态）的直接来源；`false_positives_removed` 是检查点 A 审核的补充。
 
 ## 输入打包模板
 

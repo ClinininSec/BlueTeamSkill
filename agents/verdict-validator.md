@@ -65,12 +65,12 @@
   "reasons": [
     {
       "check": "followup_complete",
-      "detail": "P0 finding TRAF-AN-001 既不在待跟进也不在已处置，漏标",
+      "detail": "P0 finding TRAF-001 既不在待跟进也不在已处置，漏标",
       "severity": "blocker | warning"
     }
   ],
   "fix_hints": [
-    "将 TRAF-AN-001 加入待跟进列表，或标注已处置+处置方式"
+    "将 TRAF-001 加入待跟进列表，或标注已处置+处置方式"
   ],
   "decision": "publish | return_to_B"
 }

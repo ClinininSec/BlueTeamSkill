@@ -140,7 +140,7 @@ python3 scripts/ioc_match.py \
 Agent (general-purpose, alert-triage):
   Input: /tmp/hvv-monitor-tagged.jsonl 的第 1-200 条
   Task: 按 references/grading.md 给每条打分；输出 8 字段 schema JSONL
-  Budget: ≤ 25 工具调用，≤ 15 分钟
+  Budget: ≤ 30 工具调用，≤ 20 分钟，≤ 50k tokens
 ```
 
 **子 agent 何时介入**：**必跑**。alert-triage 是检查点 B 的决策 agent，无论批次大小都必须调用以完成分诊决策。
@@ -318,7 +318,7 @@ python3 scripts/desensitize.py \
     "severity": "P0",
     "category": "rce",
     "evidence": "alerts-20260630.json:line 1832; payload contains '@type:com.sun.rowset...'",
-    "rule_id": "R-WAF-FASTJSON-001",
+    "rule_id": "PLB-CE-006",
     "false_positive_prob": 0.05,
     "recommended_action": "立即升 IR；保留主机快照；封 203.0.113.50；详见 playbooks/command-exec.md",
     "iocs": [
